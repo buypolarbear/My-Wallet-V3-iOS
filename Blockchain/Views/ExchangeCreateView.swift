@@ -8,6 +8,13 @@
 
 import Foundation
 
+@objc protocol ExchangeCreateViewDelegate {
+    func assetToggleButtonClicked()
+    func useMinButtonClicked()
+    func useMaxButtonClicked()
+    func continueButtonClicked()
+}
+
 @objc class ExchangeCreateView: UIView {
     @objc var topLeftField: BCSecureTextField?
     @objc var topRightField: BCSecureTextField?
@@ -32,24 +39,64 @@ import Foundation
 
     @objc var errorTextView: UITextView?
 
-    @objc func setup() {
+    private weak var createViewDelegate: ExchangeCreateViewDelegate?
+    private weak var fromToButtonDelegate: FromToButtonDelegate?
+    private weak var continueButtonInputAccessoryDelegate: ContinueButtonInputAccessoryViewDelegate?
+}
+
+extension ExchangeCreateView {
+    @objc func setup(
+        createViewDelegate: ExchangeCreateViewDelegate,
+        fromToButtonDelegate: FromToButtonDelegate,
+        continueButtonInputAccessoryDelegate: ContinueButtonInputAccessoryViewDelegate
+    ) {
+        self.createViewDelegate = createViewDelegate
+        self.fromToButtonDelegate = fromToButtonDelegate
+        self.continueButtonInputAccessoryDelegate = continueButtonInputAccessoryDelegate
+
         backgroundColor = UIColor.lightGray
-        let windowWidth = frame.size.width
-        let fromToView = FromToView(frame: CGRect(x: 0, y: 16, width: windowWidth, height: 96), enableToTextField: false)
-        // fromToView!.delegate = self
-        addSubview(fromToView!)
-        self.fromToView = fromToView
+        setupSubviews()
+    }
+}
 
-        guard let smallFont = UIFont(name: Constants.FontNames.montserratRegular, size: Constants.FontSizes.Small) else {
-            Logger.shared.error("Could not create small font")
-            return
-        }
+private extension ExchangeCreateView {
+    func setupSubviews() {
+        setupFromToView()
 
-        let amountView = UIView(frame: CGRect(x: 0, y: fromToView!.frame.origin.y + fromToView!.frame.size.height + 1, width: windowWidth, height: 96))
+        let amountView = UIView(frame: CGRect(
+            x: 0,
+            y: fromToView!.frame.origin.y + fromToView!.frame.size.height + 1,
+            width: windowWidth,
+            height: 96
+        ))
         amountView.backgroundColor = UIColor.white
         addSubview(amountView)
 
-        let topLeftLabel = UILabel(frame: CGRect(x: 15, y: 0, width: 40, height: 30))
+        setupTopLeftLabel(amountView: amountView)
+        setupToggleButtonWithSpinner(amountView: amountView)
+        setupTopRightLabel(amountView: amountView)
+        setupInputAccessoryView()
+        setupTopFields(amountView: amountView)
+        setupBottomFields(amountView: amountView)
+        setupFiatLabel(amountView: amountView)
+    }
+
+    var windowWidth: CGFloat { return frame.size.width }
+
+    func setupFromToView() {
+        let fromToView = FromToView(frame: CGRect(x: 0, y: 16, width: windowWidth, height: 96), enableToTextField: false)
+        fromToView!.fromImageView.image = #imageLiteral(resourceName: "chevron_right")
+        fromToView!.toImageView.image = #imageLiteral(resourceName: "chevron_right")
+        fromToView!.delegate = fromToButtonDelegate
+        addSubview(fromToView!)
+        self.fromToView = fromToView
+    }
+
+    var smallFont: UIFont { return UIFont(name: Constants.FontNames.montserratRegular, size: Constants.FontSizes.Small)! }
+    var topLeftLabelFrame: CGRect { return CGRect(x: 15, y: 0, width: 40, height: 30) }
+
+    func setupTopLeftLabel(amountView: UIView) {
+        let topLeftLabel = UILabel(frame: topLeftLabelFrame)
         topLeftLabel.font = smallFont
         topLeftLabel.textColor = UIColor.gray5
         topLeftLabel.text = AssetType.bitcoin.description
@@ -57,10 +104,14 @@ import Foundation
 
         leftLabel = topLeftLabel
         amountView.addSubview(topLeftLabel)
+    }
 
-        let assetToggleButton = UIButton(frame: CGRect(x: 0, y: 12, width: 30, height: 30))
+    var toggleButtonFrame: CGRect { return CGRect(x: 0, y: 12, width: 30, height: 30) }
+
+    func setupToggleButtonWithSpinner(amountView: UIView) {
+        let assetToggleButton = UIButton(frame: toggleButtonFrame)
         assetToggleButton.center = CGPoint(x: windowWidth / 2, y: assetToggleButton.center.y)
-        // assetToggleButton.addTarget(self, action: #selector(self.assetToggleButtonClicked), for: .touchUpInside)
+        assetToggleButton.addTarget(self, action: #selector(self.assetToggleButtonClicked), for: .touchUpInside)
         assetToggleButton.setImage(#imageLiteral(resourceName: "switch_currencies"), for: .normal)
         assetToggleButton.imageView?.transform = CGAffineTransform(rotationAngle: .pi / 2)
         assetToggleButton.center = CGPoint(x: assetToggleButton.center.x, y: FromToView.self.rowHeight() / 2)
@@ -71,52 +122,87 @@ import Foundation
         spinner!.center = assetToggleButton.center
         amountView.addSubview(spinner!)
         spinner!.isHidden = true
+    }
 
-        let topRightLabel = UILabel(frame: CGRect(x: assetToggleButton.frame.origin.x + assetToggleButton.frame.size.width + 15, y: 12, width: 40, height: 30))
+    var topRightLabelFrame: CGRect { return CGRect(
+        x: toggleButtonFrame.origin.x + toggleButtonFrame.size.width + 15,
+        y: 12,
+        width: 40,
+        height: 30)
+    }
+
+    func setupTopRightLabel(amountView: UIView) {
+        let topRightLabel = UILabel(frame: topRightLabelFrame)
         topRightLabel.font = smallFont
         topRightLabel.textColor = UIColor.gray5
         topRightLabel.text = AssetType.ethereum.description
         topRightLabel.center = CGPoint(x: topRightLabel.center.x, y: FromToView.self.rowHeight() / 2)
         rightLabel = topRightLabel
         amountView.addSubview(topRightLabel)
+    }
 
+    func setupInputAccessoryView() {
         let inputAccessoryView = ContinueButtonInputAccessoryView()
-        // inputAccessoryView.delegate = self
+        inputAccessoryView.delegate = continueButtonInputAccessoryDelegate
         continuePaymentAccessoryView = inputAccessoryView
+    }
 
-        let leftFieldOriginX: CGFloat = topLeftLabel.frame.origin.x + topLeftLabel.frame.size.width + 8
-        let leftField = BCSecureTextField(frame: CGRect(x: leftFieldOriginX, y: 12, width: assetToggleButton.frame.origin.x - 8 - leftFieldOriginX, height: 30))
+    var leftFieldOriginX: CGFloat { return topLeftLabelFrame.origin.x + topLeftLabelFrame.size.width + 8 }
+    var rightFieldOriginX: CGFloat { return topRightLabelFrame.origin.x + topRightLabelFrame.size.width + 8 }
+    var leftFieldWidth: CGFloat { return toggleButtonFrame.origin.x - 8 - leftFieldOriginX }
+    var rightFieldWidth: CGFloat { return windowWidth - 8 - rightFieldOriginX }
+
+    func setupTopFields(amountView: UIView) {
+        let leftField = BCSecureTextField(frame: CGRect(x: leftFieldOriginX, y: 12, width: leftFieldWidth, height: 30))
         amountView.addSubview(leftField)
         leftField.placeholder = assetPlaceholder
         leftField.inputAccessoryView = inputAccessoryView
         leftField.center = CGPoint(x: leftField.center.x, y: FromToView.self.rowHeight() / 2)
         topLeftField = leftField
         btcField = topLeftField
-        let rightFieldOriginX: CGFloat = topRightLabel.frame.origin.x + topRightLabel.frame.size.width + 8
-        let rightField = BCSecureTextField(frame: CGRect(x: rightFieldOriginX, y: 12, width: windowWidth - 8 - rightFieldOriginX, height: 30))
+        let rightField = BCSecureTextField(frame: CGRect(x: rightFieldOriginX, y: 12, width: rightFieldWidth, height: 30))
         amountView.addSubview(rightField)
         rightField.placeholder = assetPlaceholder
         rightField.inputAccessoryView = inputAccessoryView
         rightField.center = CGPoint(x: rightField.center.x, y: FromToView.self.rowHeight() / 2)
         topRightField = rightField
         ethField = topRightField
+    }
 
-        let dividerLine = UIView(frame: CGRect(x: leftFieldOriginX, y: FromToView.self.rowHeight(), width: windowWidth - leftFieldOriginX, height: 0.5))
+    func setupBottomFields(amountView: UIView) {
+        let dividerLine = UIView(frame: CGRect(
+            x: leftFieldOriginX,
+            y: FromToView.self.rowHeight(),
+            width: windowWidth - leftFieldOriginX,
+            height: 0.5
+        ))
         dividerLine.backgroundColor = UIColor.grayLine
         amountView.addSubview(dividerLine)
 
-        bottomLeftField = BCSecureTextField(frame: CGRect(x: leftFieldOriginX, y: dividerLine.frame.origin.y + dividerLine.frame.size.height + 8, width: leftField.frame.size.width, height: 30))
+        bottomLeftField = BCSecureTextField(frame: CGRect(
+            x: leftFieldOriginX,
+            y: dividerLine.frame.origin.y + dividerLine.frame.size.height + 8,
+            width: leftFieldWidth,
+            height: 30
+        ))
         amountView.addSubview(bottomLeftField!)
         bottomLeftField?.inputAccessoryView = inputAccessoryView
         bottomLeftField?.placeholder = fiatPlaceholder
         bottomLeftField?.center = CGPoint(x: bottomLeftField?.center.x ?? 0.0, y: FromToView.self.rowHeight() * 1.5)
 
-        bottomRightField = BCSecureTextField(frame: CGRect(x: rightFieldOriginX, y: dividerLine.frame.origin.y + dividerLine.frame.size.height + 8, width: rightField.frame.size.width, height: 30))
+        bottomRightField = BCSecureTextField(frame: CGRect(
+            x: rightFieldOriginX,
+            y: dividerLine.frame.origin.y + dividerLine.frame.size.height + 8,
+            width: rightFieldWidth,
+            height: 30
+        ))
         amountView.addSubview(bottomRightField!)
         bottomRightField?.placeholder = fiatPlaceholder
         bottomRightField?.inputAccessoryView = inputAccessoryView
         bottomRightField?.center = CGPoint(x: bottomRightField!.center.x, y: FromToView.self.rowHeight() * 1.5)
+    }
 
+    func setupFiatLabel(amountView: UIView) {
         fiatLabel = UILabel(frame: CGRect(x: 15, y: 0, width: 40, height: 30))
         fiatLabel?.center = CGPoint(x: fiatLabel!.center.x, y: bottomLeftField!.center.y)
         fiatLabel?.font = smallFont
@@ -124,13 +210,19 @@ import Foundation
         fiatLabel?.text = WalletManager.shared.latestMultiAddressResponse!.symbol_local.code
         fiatLabel?.center = CGPoint(x: fiatLabel!.center.x, y: FromToView.self.rowHeight() * 1.5)
         amountView.addSubview(fiatLabel!)
+    }
 
-        fromToView!.fromImageView.image = #imageLiteral(resourceName: "chevron_right")
-        fromToView!.toImageView.image = #imageLiteral(resourceName: "chevron_right")
+    func setupMinAndMaxButtons(amountView: UIView) {
         let buttonHeight: CGFloat = 50
         let lineAboveButtonsView = BCLine(yPosition: amountView.frame.origin.y + amountView.frame.size.height)
         addSubview(lineAboveButtonsView!)
-        let buttonsView = UIView(frame: CGRect(x: 0, y: amountView.frame.origin.y + amountView.frame.size.height + 0.5, width: windowWidth, height: buttonHeight))
+
+        let buttonsView = UIView(frame: CGRect(
+            x: 0,
+            y: amountView.frame.origin.y + amountView.frame.size.height + 0.5,
+            width: windowWidth,
+            height: buttonHeight
+        ))
         buttonsView.backgroundColor = UIColor.grayLine
         addSubview(buttonsView)
 
@@ -141,19 +233,31 @@ import Foundation
         useMinButton.backgroundColor = UIColor.white
         useMinButton.setTitleColor(UIColor.brandSecondary, for: .normal)
         useMinButton.setTitle(LocalizationConstants.Exchange.useMinimum, for: .normal)
-        // useMinButton.addTarget(self, action: #selector(self.useMinButtonClicked), for: .touchUpInside)
+        useMinButton.addTarget(self, action: #selector(self.useMinButtonClicked), for: .touchUpInside)
         buttonsView.addSubview(useMinButton)
 
         let useMaxButtonOriginX: CGFloat = buttonsView.frame.size.width / 2 + dividerLineWidth / 2
-        let useMaxButton = UIButton(frame: CGRect(x: useMaxButtonOriginX, y: 0, width: buttonsView.frame.size.width - useMaxButtonOriginX, height: buttonHeight))
+        let useMaxButton = UIButton(frame: CGRect(
+            x: useMaxButtonOriginX,
+            y: 0,
+            width: buttonsView.frame.size.width - useMaxButtonOriginX,
+            height: buttonHeight
+        ))
         useMaxButton.titleLabel?.font = buttonFont
         useMaxButton.backgroundColor = UIColor.white
         useMaxButton.setTitleColor(UIColor.brandSecondary, for: .normal)
         useMaxButton.setTitle(LocalizationConstants.Exchange.useMaximum, for: .normal)
-        // useMaxButton.addTarget(self, action: #selector(self.useMaxButtonClicked), for: .touchUpInside)
+        useMaxButton.addTarget(self, action: #selector(self.useMaxButtonClicked), for: .touchUpInside)
         buttonsView.addSubview(useMaxButton)
+    }
 
-        let errorTextView = UITextView(frame: CGRect(x: 15, y: buttonsView.frame.origin.y + buttonsView.frame.size.height + 8, width: windowWidth - 30, height: 60))
+    func setupErrorTextView(buttonsView: UIView) {
+        let errorTextView = UITextView(frame: CGRect(
+            x: 15,
+            y: buttonsView.frame.origin.y + buttonsView.frame.size.height + 8,
+            width: windowWidth - 30,
+            height: 60
+        ))
         errorTextView.isEditable = false
         errorTextView.isScrollEnabled = false
         errorTextView.isSelectable = false
@@ -162,7 +266,9 @@ import Foundation
         errorTextView.backgroundColor = UIColor.clear
         addSubview(errorTextView)
         errorTextView.isHidden = true
+    }
 
+    func setupContinueButton() {
         continueButton = UIButton(frame: CGRect(x: 0, y: 0, width: frame.size.width - 40, height: Constants.Measurements.buttonHeight))
         continueButton?.backgroundColor = UIColor.brandSecondary
         continueButton?.layer.cornerRadius = Constants.Measurements.buttonCornerRadius
@@ -170,14 +276,33 @@ import Foundation
         continueButton?.titleLabel?.font = UIFont(name: Constants.FontNames.montserratRegular, size: 17.0)
         continueButton?.setTitle(LocalizationConstants.continueString, for: .normal)
         let safeAreaInsetTop: CGFloat = UIView.rootViewSafeAreaInsets().top
-        let continueButtonCenterY = frame.size.height - 24 - Constants.Measurements.buttonHeight / 2 - safeAreaInsetTop - ConstantsObjcBridge.defaultNavigationBarHeight()
+        let continueButtonCenterY = frame.size.height - 24 - Constants.Measurements.buttonHeight / 2
+            - safeAreaInsetTop - ConstantsObjcBridge.defaultNavigationBarHeight()
         continueButton?.center = CGPoint(x: center.x, y: continueButtonCenterY)
         addSubview(continueButton!)
-        // continueButton.addTarget(self, action: #selector(self.continueButtonClicked), for: .touchUpInside)
+        continueButton?.addTarget(self, action: #selector(self.continueButtonClicked), for: .touchUpInside)
     }
 }
 
-extension ExchangeCreateView {
+@objc private extension ExchangeCreateView {
+    func assetToggleButtonClicked() {
+        createViewDelegate?.assetToggleButtonClicked()
+    }
+
+    func useMinButtonClicked() {
+        createViewDelegate?.useMinButtonClicked()
+    }
+
+    func useMaxButtonClicked() {
+        createViewDelegate?.useMaxButtonClicked()
+    }
+
+    func continueButtonClicked() {
+        createViewDelegate?.continueButtonClicked()
+    }
+}
+
+private extension ExchangeCreateView {
     var fiatPlaceholder: String {
         return placeholder(decimalPlaces: 2)
     }
