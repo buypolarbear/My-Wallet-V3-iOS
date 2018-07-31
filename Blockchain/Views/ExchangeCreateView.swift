@@ -16,8 +16,11 @@ import Foundation
 }
 
 @objc class ExchangeCreateView: UIView {
+    // Digital asset input
     @objc var topLeftField: BCSecureTextField?
     @objc var topRightField: BCSecureTextField?
+
+    // Fiat input
     @objc var bottomLeftField: BCSecureTextField?
     @objc var bottomRightField: BCSecureTextField?
 
@@ -327,5 +330,99 @@ private extension ExchangeCreateView {
         textField.delegate = textFieldDelegate
         textField.inputAccessoryView = continuePaymentAccessoryView
         return textField
+    }
+}
+
+// MARK: - Public methods
+@objc extension ExchangeCreateView {
+    func clearFields() {
+        topLeftField?.text = nil
+        topRightField?.text = nil
+        bottomLeftField?.text = nil
+        bottomRightField?.text = nil
+    }
+
+    func hideKeyboard() {
+        bottomRightField?.resignFirstResponder()
+        bottomLeftField?.resignFirstResponder()
+        topLeftField?.resignFirstResponder()
+        topRightField?.resignFirstResponder()
+    }
+
+    func highlightInvalidAmounts() {
+        changeAmountFieldColor(color: UIColor.error)
+    }
+
+    func removeHighlightFromAmounts() {
+        changeAmountFieldColor(color: UIColor.gray5)
+    }
+
+    private func changeAmountFieldColor(color: UIColor) {
+        topLeftField?.textColor = color
+        topRightField?.textColor = color
+        bottomLeftField?.textColor = color
+        bottomRightField?.textColor = color
+    }
+
+    func enableAssetToggleButton() {
+        assetToggleButton?.isUserInteractionEnabled = true
+        assetToggleButton?.setImage(#imageLiteral(resourceName: "switch_currencies"), for: .normal)
+    }
+
+    func disableAssetToggleButton() {
+        assetToggleButton?.isUserInteractionEnabled = false
+        assetToggleButton?.setImage(nil, for: .normal)
+    }
+
+    func startSpinner() {
+        spinner?.startAnimating()
+    }
+
+    func stopSpinner() {
+        spinner?.stopAnimating()
+    }
+
+    func enablePaymentButtons() {
+        continuePaymentAccessoryView?.enableContinueButton()
+        continueButton?.isEnabled = true
+        continueButton?.setTitleColor(UIColor.white, for: .normal)
+        continueButton?.backgroundColor = UIColor.brandSecondary
+    }
+
+    func disablePaymentButtons() {
+        continuePaymentAccessoryView?.disableContinueButton()
+        continueButton?.isEnabled = false
+        continueButton?.setTitleColor(UIColor.gray, for: .disabled)
+        continueButton?.backgroundColor = UIColor.keyPadButton
+    }
+
+    func showError(text: String) {
+        highlightInvalidAmounts()
+        errorTextView?.isHidden = false
+        errorTextView?.text = text
+        disablePaymentButtons()
+    }
+
+    func clearRightFields() {
+        topRightField?.text = nil
+        bottomRightField?.text = nil
+    }
+
+    private func clearLeftFields() {
+        topLeftField?.text = nil
+        bottomLeftField?.text = nil
+    }
+
+    func clearOppositeFields() {
+        guard let topRightFieldIsActive = topRightField?.isFirstResponder,
+            let bottomRightFieldIsActive = bottomRightField?.isFirstResponder else {
+            Logger.shared.error("isFirstResponder returning nil instead of boolean")
+            return
+        }
+        if topRightFieldIsActive || bottomRightFieldIsActive {
+            clearLeftFields()
+        } else {
+            clearRightFields()
+        }
     }
 }

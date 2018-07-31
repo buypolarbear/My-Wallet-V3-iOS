@@ -22,32 +22,7 @@
 
 @interface ExchangeCreateViewController () <UITextFieldDelegate, FromToButtonDelegate, AddressSelectionDelegate, ContinueButtonInputAccessoryViewDelegate, ExchangeCreateViewDelegate>
 
-@property (nonatomic) FromToView *fromToView;
-
-@property (nonatomic) UILabel *fiatLabel;
-
-@property (nonatomic) UILabel *leftLabel;
-@property (nonatomic) UILabel *rightLabel;
-
-@property (nonatomic) UIButton *assetToggleButton;
-
 @property (nonatomic) NSTimer *quoteTimer;
-
-// Digital asset input
-@property (nonatomic) BCSecureTextField *topLeftField;
-@property (nonatomic) BCSecureTextField *topRightField;
-
-@property (nonatomic) BCSecureTextField *btcField;
-@property (nonatomic) BCSecureTextField *ethField;
-@property (nonatomic) BCSecureTextField *bchField;
-    
-@property (nonatomic) UITextField *lastChangedField;
-
-// Fiat input
-@property (nonatomic) BCSecureTextField *bottomLeftField;
-@property (nonatomic) BCSecureTextField *bottomRightField;
-
-@property (nonatomic) UITextView *errorTextView;
 
 @property (nonatomic) id amount;
 @property (nonatomic) int btcAccount;
@@ -72,11 +47,6 @@
 @property (nonatomic) id availableBalance;
 @property (nonatomic) id fee;
 
-@property (nonatomic) UIActivityIndicatorView *spinner;
-
-@property (nonatomic) ContinueButtonInputAccessoryView *continuePaymentAccessoryView;
-@property (nonatomic) UIButton *continueButton;
-
 @property (nonatomic) ExchangeCreateView *exchangeView;
 @end
 
@@ -98,7 +68,7 @@
     [self clearAmount];
     [self clearAvailableBalance];
     
-    [self disablePaymentButtons];
+    [self.exchangeView disablePaymentButtons];
     
     if ([WalletManager.sharedInstance.wallet getTotalActiveBalance] > 0 ||
         [[NSDecimalNumber decimalNumberWithString:[WalletManager.sharedInstance.wallet getEthBalance]] compare:@0] == NSOrderedDescending ||
@@ -129,8 +99,8 @@
 
 - (void)didGetExchangeRate:(ExchangeRate *)exchangeRate
 {
-    [self enableAssetToggleButton];
-    [self.spinner stopAnimating];
+    [self.exchangeView enableAssetToggleButton];
+    [self.exchangeView stopSpinner];
     
     if ([self.fromSymbol isEqualToString:CURRENCY_SYMBOL_BTC] || [self.fromSymbol isEqualToString:CURRENCY_SYMBOL_BCH]) {
         NSString *minNumberString = exchangeRate.minimum.stringValue;
@@ -169,7 +139,7 @@
     if (!result) {
         NSString *amountText = [[NSNumberFormatter satoshiToBTC:[self.minimum longLongValue]] stringByAppendingFormat:@" %@", self.availableBalanceFromSymbol];
         NSString *errorText = [NSString stringWithFormat:BC_STRING_ARGUMENT_NEEDED_TO_EXCHANGE, amountText];
-        [self showErrorText:errorText];
+        [self.exchangeView showErrorWithText:errorText];
         return;
     }
     
@@ -254,33 +224,15 @@
     }
     
     if (zeroAmount) {
-        self.errorTextView.hidden = YES;
-        [self disablePaymentButtons];
+        self.exchangeView.errorTextView.hidden = YES;
+        [self.exchangeView disablePaymentButtons];
     } else if (overAvailable || overMax || underMin || notEnoughToExchange || isWaitingOnTransaction) {
-        [self showErrorText:errorText];
+        [self.exchangeView showErrorWithText:errorText];
     } else {
-        [self removeHighlightFromAmounts];
-        [self enablePaymentButtons];
-        self.errorTextView.hidden = YES;
+        [self.exchangeView removeHighlightFromAmounts];
+        [self.exchangeView enablePaymentButtons];
+        self.exchangeView.errorTextView.hidden = YES;
     }
-}
-
-- (void)enablePaymentButtons
-{
-    [self.continuePaymentAccessoryView enableContinueButton];
-    
-    self.continueButton.enabled = YES;
-    [self.continueButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.continueButton setBackgroundColor:UIColor.brandSecondary];
-}
-
-- (void)disablePaymentButtons
-{
-    [self.continuePaymentAccessoryView disableContinueButton];
-
-    self.continueButton.enabled = NO;
-    [self.continueButton setTitleColor:[UIColor grayColor] forState:UIControlStateDisabled];
-    [self.continueButton setBackgroundColor:UIColor.keyPadButton];
 }
 
 - (void)didGetApproximateQuote:(NSDictionary *)result
@@ -291,37 +243,37 @@
     NSString *depositAmountString = [depositAmount isKindOfClass:[NSString class]] ? depositAmount : [depositAmount stringValue];
     NSString *withdrawalAmountString = [withdrawalAmount isKindOfClass:[NSString class]] ? withdrawalAmount : [withdrawalAmount stringValue];
     
-    self.topLeftField.text = [NSNumberFormatter localFormattedString:depositAmountString];
-    self.topRightField.text = [NSNumberFormatter localFormattedString:withdrawalAmountString];;
+    self.exchangeView.topLeftField.text = [NSNumberFormatter localFormattedString:depositAmountString];
+    self.exchangeView.topRightField.text = [NSNumberFormatter localFormattedString:withdrawalAmountString];;
     
     NSString *pair = [self coinPair];
     if ([[pair lowercaseString] isEqualToString: [[result objectForKey:DICTIONARY_KEY_PAIR] lowercaseString]]) {
         
-        NSString *btcResult = [self convertBtcAmountToFiat:self.btcField.text];
-        NSString *ethResult = [self convertEthAmountToFiat:self.ethField.text];
-        NSString *bchResult = [self convertBchAmountToFiat:self.bchField.text];
+        NSString *btcResult = [self convertBtcAmountToFiat:self.exchangeView.btcField.text];
+        NSString *ethResult = [self convertEthAmountToFiat:self.exchangeView.ethField.text];
+        NSString *bchResult = [self convertBchAmountToFiat:self.exchangeView.bchField.text];
 
         NSString *fromSymbol = self.fromSymbol;
         if ([fromSymbol isEqualToString:CURRENCY_SYMBOL_ETH]) {
-            self.bottomLeftField.text = ethResult;
+            self.exchangeView.bottomLeftField.text = ethResult;
             self.amount = [NSDecimalNumber decimalNumberWithString:depositAmountString];
         } else if ([fromSymbol isEqualToString:CURRENCY_SYMBOL_BTC]) {
-            self.bottomLeftField.text = btcResult;
+            self.exchangeView.bottomLeftField.text = btcResult;
             self.amount = [NSNumber numberWithLongLong:[NSNumberFormatter parseBtcValueFromString:depositAmountString]];
         } else if ([fromSymbol isEqualToString:CURRENCY_SYMBOL_BCH]) {
-            self.bottomLeftField.text = bchResult;
+            self.exchangeView.bottomLeftField.text = bchResult;
             self.amount = [NSNumber numberWithLongLong:[NSNumberFormatter parseBtcValueFromString:depositAmountString]];
         }
         
-        self.lastChangedField = self.bottomLeftField;
+        self.exchangeView.lastChangedField = self.exchangeView.bottomLeftField;
         
         NSString *toSymbol = self.toSymbol;
         if ([toSymbol isEqualToString:CURRENCY_SYMBOL_ETH]) {
-            self.bottomRightField.text = ethResult;
+            self.exchangeView.bottomRightField.text = ethResult;
         } else if ([toSymbol isEqualToString:CURRENCY_SYMBOL_BTC]) {
-            self.bottomRightField.text = btcResult;
+            self.exchangeView.bottomRightField.text = btcResult;
         } else if ([toSymbol isEqualToString:CURRENCY_SYMBOL_BCH]) {
-            self.bottomRightField.text = bchResult;
+            self.exchangeView.bottomRightField.text = bchResult;
         }
         
         [self updateAvailableBalance];
@@ -365,7 +317,7 @@
     }
     
     // When entering amount in ETH, max 18 decimal places
-    if (textField == self.ethField) {
+    if (textField == self.exchangeView.ethField) {
         // Max number of decimal places depends on bitcoin unit
         NSUInteger maxlength = ETH_DECIMAL_LIMIT;
         
@@ -384,7 +336,7 @@
     }
     
     // When entering amount in BTC, max 8 decimal places
-    else if (textField == self.btcField || textField == self.bchField) {
+    else if (textField == self.exchangeView.btcField || textField == self.exchangeView.bchField) {
         // Max number of decimal places depends on bitcoin unit
         NSUInteger maxlength = [@(SATOSHI) stringValue].length - [@(SATOSHI / WalletManager.sharedInstance.latestMultiAddressResponse.symbol_btc.conversion) stringValue].length;
         
@@ -403,7 +355,7 @@
     }
     
     // Fiat currencies have a max of 3 decimal places, most of them actually only 2. For now we will use 2.
-    else if (textField == self.bottomLeftField || self.bottomRightField) {
+    else if (textField == self.exchangeView.bottomLeftField || self.exchangeView.bottomRightField) {
         if (points.count == 2) {
             NSString *decimalString = points[1];
             if (decimalString.length > 2) {
@@ -418,13 +370,13 @@
         }
     }
     
-    self.lastChangedField = textField;
+    self.exchangeView.lastChangedField = textField;
     
     NSString *amountString = [NSNumberFormatter convertedDecimalString:newString];
     
     [self saveAmount:amountString fromField:textField];
     
-    [self clearOppositeFields];
+    [self.exchangeView clearOppositeFields];
     
     [self cancelCurrentDataTask];
     
@@ -436,25 +388,27 @@
 
 - (void)saveAmount:(NSString *)amountString fromField:(UITextField *)textField
 {
-    if (textField == self.ethField) {
+    ExchangeCreateView *exchangeView = self.exchangeView;
+
+    if (textField == exchangeView.ethField) {
         self.amount = [NSDecimalNumber decimalNumberWithString:amountString];
-    } else if (textField == self.btcField || textField == self.bchField) {
+    } else if (textField == exchangeView.btcField || textField == exchangeView.bchField) {
         self.amount = [NSNumber numberWithLongLong:[NSNumberFormatter parseBtcValueFromString:amountString]];
     } else {
-        if (textField == self.bottomLeftField) {
-            if (self.topLeftField == self.ethField) {
+        if (textField == exchangeView.bottomLeftField) {
+            if (exchangeView.topLeftField == exchangeView.ethField) {
                 [self convertFiatStringToEth:amountString];
-            } else if (self.topLeftField == self.btcField) {
+            } else if (exchangeView.topLeftField == exchangeView.btcField) {
                 [self convertFiatStringToBtc:amountString];
-            } else if (self.topLeftField == self.bchField) {
+            } else if (exchangeView.topLeftField == exchangeView.bchField) {
                 [self convertFiatStringToBch:amountString];
             }
-        } else if (textField == self.bottomRightField) {
-            if (self.topRightField == self.ethField) {
+        } else if (textField == exchangeView.bottomRightField) {
+            if (exchangeView.topRightField == exchangeView.ethField) {
                 [self convertFiatStringToEth:amountString];
-            } else if (self.topRightField == self.btcField) {
+            } else if (exchangeView.topRightField == exchangeView.btcField) {
                 [self convertFiatStringToBtc:amountString];
-            } else if (self.topRightField == self.bchField) {
+            } else if (exchangeView.topRightField == exchangeView.bchField) {
                 [self convertFiatStringToBch:amountString];
             }
         }
@@ -539,68 +493,70 @@
 {
     [self doCurrencyConversion];
     
-    if ([self.bottomLeftField isFirstResponder] || [self.topLeftField isFirstResponder]) {
+    if ([self.exchangeView.bottomLeftField isFirstResponder] || [self.exchangeView.topLeftField isFirstResponder]) {
         [self updateAvailableBalance];
     }
     
-    [self disablePaymentButtons];
+    [self.exchangeView disablePaymentButtons];
     
     self.quoteTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(getApproximateQuoteAfterTimer) userInfo:nil repeats:NO];
 }
 
 - (void)doCurrencyConversion
 {
-    if ([self.btcField isFirstResponder]) {
+    ExchangeCreateView *exchangeView = self.exchangeView;
+
+    if ([exchangeView.btcField isFirstResponder]) {
         
         NSString *result = [self convertBtcAmountToFiat];
         
         if ([self.fromSymbol isEqualToString:CURRENCY_SYMBOL_ETH]) {
-            self.bottomRightField.text = result;
+            exchangeView.bottomRightField.text = result;
         } else {
-            self.bottomLeftField.text = result;
+            exchangeView.bottomLeftField.text = result;
         }
         
-    } else if ([self.ethField isFirstResponder]) {
+    } else if ([exchangeView.ethField isFirstResponder]) {
         
         NSString *result = [self convertEthAmountToFiat];
 
         if ([self.fromSymbol isEqualToString:CURRENCY_SYMBOL_ETH]) {
-            self.bottomLeftField.text = result;
+            exchangeView.bottomLeftField.text = result;
         } else {
-            self.bottomRightField.text = result;
+            exchangeView.bottomRightField.text = result;
         }
         
-    } else if ([self.bchField isFirstResponder]) {
+    } else if ([exchangeView.bchField isFirstResponder]) {
         
         NSString *result = [self convertBchAmountToFiat];
         
         if ([self.fromSymbol isEqualToString:CURRENCY_SYMBOL_BCH]) {
-            self.bottomLeftField.text = result;
+            exchangeView.bottomLeftField.text = result;
         } else {
-            self.bottomRightField.text = result;
+            exchangeView.bottomRightField.text = result;
         }
         
-    } else if ([self.bottomLeftField isFirstResponder] || [self.bottomRightField isFirstResponder]) {
+    } else if ([exchangeView.bottomLeftField isFirstResponder] || [exchangeView.bottomRightField isFirstResponder]) {
         
         NSString *ethString = [self.amount stringValue];
         NSString *btcString = [NSNumberFormatter satoshiToBTC:[self.amount longLongValue]];
         NSString *bchString = [NSNumberFormatter satoshiToBTC:[self.amount longLongValue]];
 
-        if ([self.bottomLeftField isFirstResponder]) {
-            if (self.topLeftField == self.ethField) {
-                self.ethField.text = ethString;
-            } else if (self.topLeftField == self.btcField) {
-                self.btcField.text = btcString;
-            } else if (self.topLeftField == self.bchField) {
-                self.bchField.text = bchString;
+        if ([exchangeView.bottomLeftField isFirstResponder]) {
+            if (exchangeView.topLeftField == exchangeView.ethField) {
+                exchangeView.ethField.text = ethString;
+            } else if (exchangeView.topLeftField == exchangeView.btcField) {
+                exchangeView.btcField.text = btcString;
+            } else if (exchangeView.topLeftField == exchangeView.bchField) {
+                exchangeView.bchField.text = bchString;
             }
-        } else if ([self.bottomRightField isFirstResponder]) {
-            if (self.topRightField == self.ethField) {
-                self.ethField.text = ethString;
-            } else if (self.topRightField == self.btcField) {
-                self.btcField.text = btcString;
-            } else if (self.topRightField == self.bchField) {
-                self.bchField.text = bchString;
+        } else if ([exchangeView.bottomRightField isFirstResponder]) {
+            if (exchangeView.topRightField == exchangeView.ethField) {
+                exchangeView.ethField.text = ethString;
+            } else if (exchangeView.topRightField == exchangeView.btcField) {
+                exchangeView.btcField.text = btcString;
+            } else if (exchangeView.topRightField == exchangeView.bchField) {
+                exchangeView.bchField.text = bchString;
             }
         }
     }
@@ -617,47 +573,18 @@
 {
     self.availableBalance = 0;
     
-    self.errorTextView.hidden = YES;
-    [self disablePaymentButtons];
-}
-
-- (void)clearFields
-{
-    self.topLeftField.text = nil;
-    self.topRightField.text = nil;
-    self.bottomLeftField.text = nil;
-    self.bottomRightField.text = nil;
-}
-
-- (void)clearOppositeFields
-{
-    if ([self.topRightField isFirstResponder] || [self.bottomRightField isFirstResponder]) {
-        [self clearLeftFields];
-    } else {
-        [self clearRightFields];
-    }
-}
-
-- (void)clearRightFields
-{
-    self.topRightField.text = nil;
-    self.bottomRightField.text = nil;
-}
-
-- (void)clearLeftFields
-{
-    self.topLeftField.text = nil;
-    self.bottomLeftField.text = nil;
+    self.exchangeView.errorTextView.hidden = YES;
+    [self.exchangeView disablePaymentButtons];
 }
 
 - (void)clearFieldOfSymbol:(NSString *)symbol
 {
     if ([symbol isEqualToString:CURRENCY_SYMBOL_BTC]) {
-        self.btcField = nil;
+        self.exchangeView.btcField = nil;
     } else if ([symbol isEqualToString:CURRENCY_SYMBOL_ETH]) {
-        self.ethField = nil;
+        self.exchangeView.ethField = nil;
     } else if ([symbol isEqualToString:CURRENCY_SYMBOL_BCH]) {
-        self.bchField = nil;
+        self.exchangeView.bchField = nil;
     }
 }
 
@@ -666,9 +593,9 @@
     self.oldFromSymbol = self.fromSymbol;
     
     self.fromSymbol = CURRENCY_SYMBOL_ETH;
-    self.ethField = self.topLeftField;
-    self.fromToView.fromLabel.text = [self etherLabelText];
-    self.leftLabel.text = CURRENCY_SYMBOL_ETH;
+    self.exchangeView.ethField = self.exchangeView.topLeftField;
+    self.exchangeView.fromToView.fromLabel.text = [self etherLabelText];
+    self.exchangeView.leftLabel.text = CURRENCY_SYMBOL_ETH;
     self.fromAddress = [WalletManager.sharedInstance.wallet getEtherAddress];
     
     [self clearAvailableBalance];
@@ -681,9 +608,9 @@
     self.oldFromSymbol = self.fromSymbol;
 
     self.fromSymbol = CURRENCY_SYMBOL_BTC;
-    self.btcField = self.topLeftField;
-    self.fromToView.fromLabel.text = [self bitcoinLabelText];
-    self.leftLabel.text = CURRENCY_SYMBOL_BTC;
+    self.exchangeView.btcField = self.exchangeView.topLeftField;
+    self.exchangeView.fromToView.fromLabel.text = [self bitcoinLabelText];
+    self.exchangeView.leftLabel.text = CURRENCY_SYMBOL_BTC;
     self.fromAddress = [WalletManager.sharedInstance.wallet getReceiveAddressForAccount:self.btcAccount assetType:LegacyAssetTypeBitcoin];
     
     [self clearAvailableBalance];
@@ -696,9 +623,9 @@
     self.oldFromSymbol = self.fromSymbol;
 
     self.fromSymbol = CURRENCY_SYMBOL_BCH;
-    self.bchField = self.topLeftField;
-    self.fromToView.fromLabel.text = [self bitcoinCashLabelText];
-    self.leftLabel.text = CURRENCY_SYMBOL_BCH;
+    self.exchangeView.bchField = self.exchangeView.topLeftField;
+    self.exchangeView.fromToView.fromLabel.text = [self bitcoinCashLabelText];
+    self.exchangeView.leftLabel.text = CURRENCY_SYMBOL_BCH;
     self.fromAddress = [WalletManager.sharedInstance.wallet getReceiveAddressForAccount:self.bchAccount assetType:LegacyAssetTypeBitcoin];
     
     [self clearAvailableBalance];
@@ -711,9 +638,9 @@
     self.oldToSymbol = self.toSymbol;
 
     self.toSymbol = CURRENCY_SYMBOL_BCH;
-    self.bchField = self.topRightField;
-    self.fromToView.toLabel.text = [self bitcoinCashLabelText];
-    self.rightLabel.text = CURRENCY_SYMBOL_BCH;
+    self.exchangeView.bchField = self.exchangeView.topRightField;
+    self.exchangeView.fromToView.toLabel.text = [self bitcoinCashLabelText];
+    self.exchangeView.rightLabel.text = CURRENCY_SYMBOL_BCH;
     self.toAddress = [WalletManager.sharedInstance.wallet getReceiveAddressForAccount:self.bchAccount assetType:LegacyAssetTypeBitcoinCash];
     
     [self didChangeTo];
@@ -724,9 +651,9 @@
     self.oldToSymbol = self.toSymbol;
 
     self.toSymbol = CURRENCY_SYMBOL_ETH;
-    self.ethField = self.topRightField;
-    self.fromToView.toLabel.text = [self etherLabelText];
-    self.rightLabel.text = CURRENCY_SYMBOL_ETH;
+    self.exchangeView.ethField = self.exchangeView.topRightField;
+    self.exchangeView.fromToView.toLabel.text = [self etherLabelText];
+    self.exchangeView.rightLabel.text = CURRENCY_SYMBOL_ETH;
     self.toAddress = [WalletManager.sharedInstance.wallet getEtherAddress];
     
     [self didChangeTo];
@@ -737,9 +664,9 @@
     self.oldToSymbol = self.toSymbol;
 
     self.toSymbol = CURRENCY_SYMBOL_BTC;
-    self.btcField = self.topRightField;
-    self.fromToView.toLabel.text = [self bitcoinLabelText];
-    self.rightLabel.text = CURRENCY_SYMBOL_BTC;
+    self.exchangeView.btcField = self.exchangeView.topRightField;
+    self.exchangeView.fromToView.toLabel.text = [self bitcoinLabelText];
+    self.exchangeView.rightLabel.text = CURRENCY_SYMBOL_BTC;
     self.toAddress = [WalletManager.sharedInstance.wallet getReceiveAddressForAccount:self.btcAccount assetType:LegacyAssetTypeBitcoin];
     
     [self didChangeTo];
@@ -771,11 +698,11 @@
 
 - (void)autoFillFromAmount:(id)amount
 {
-    [self clearRightFields];
+    [self.exchangeView clearRightFields];
     
     NSString *amountString = [self amountString:amount];
-    self.topLeftField.text = amountString;
-    [self saveAmount:amountString fromField:self.topLeftField];
+    self.exchangeView.topLeftField.text = amountString;
+    [self saveAmount:amountString fromField:self.exchangeView.topLeftField];
     
     NSString *fiatResult;
     if ([self.fromSymbol isEqualToString:CURRENCY_SYMBOL_ETH]) {
@@ -785,31 +712,23 @@
     } else if ([self.fromSymbol isEqualToString:CURRENCY_SYMBOL_BCH]) {
         fiatResult = [self convertBchAmountToFiat];
     }
-    self.bottomLeftField.text = fiatResult;
+    self.exchangeView.bottomLeftField.text = fiatResult;
     
     [self updateAvailableBalance];
 
     [self hideKeyboard];
     
-    [self disablePaymentButtons];
+    [self.exchangeView disablePaymentButtons];
     
     [self performSelector:@selector(getApproximateQuote) withObject:nil afterDelay:0.5];
-}
-
-- (void)showErrorText:(NSString *)errorText
-{
-    [self highlightInvalidAmounts];
-    self.errorTextView.hidden = NO;
-    self.errorTextView.text = errorText;
-    [self disablePaymentButtons];
 }
 
 #pragma mark - Wallet actions
 
 - (void)getRate
 {
-    [self disableAssetToggleButton];
-    [self.spinner startAnimating];
+    [self.exchangeView disableAssetToggleButton];
+    [self.exchangeView startSpinner];
     
     [WalletManager.sharedInstance.wallet getRate:[self coinPair]];
 }
@@ -823,21 +742,21 @@
     
     [self cancelCurrentDataTask];
     
-    BOOL usingFromField = self.lastChangedField != self.topRightField && self.lastChangedField != self.bottomRightField;
+    BOOL usingFromField = self.exchangeView.lastChangedField != self.exchangeView.topRightField && self.exchangeView.lastChangedField != self.exchangeView.bottomRightField;
 
     NSString *amount;
     if ([self hasAmountGreaterThanZero:self.amount]) {
 
-        [self disableAssetToggleButton];
-        [self.spinner startAnimating];
+        [self.exchangeView disableAssetToggleButton];
+        [self.exchangeView startSpinner];
         
         amount = [self amountString:self.amount];
         
         self.currentDataTask = [WalletManager.sharedInstance.wallet getApproximateQuote:[self coinPair] usingFromField:usingFromField amount:amount completion:^(NSDictionary *result, NSURLResponse *response, NSError *error) {
             DLog(@"approximate quote result: %@", result);
             
-            [self enableAssetToggleButton];
-            [self.spinner stopAnimating];
+            [self.exchangeView enableAssetToggleButton];
+            [self.exchangeView stopSpinner];
             
             NSDictionary *resultSuccess = [result objectForKey:DICTIONARY_KEY_SUCCESS];
             if (resultSuccess) {
@@ -845,11 +764,11 @@
             } else {
                 DLog(@"Error getting approximate quote:%@", result);
                 if ([[result objectForKey:DICTIONARY_KEY_ERROR] containsString:ERROR_MAXIMUM]) {
-                    [self showErrorText:BC_STRING_ABOVE_MAXIMUM_LIMIT];
+                    [self.exchangeView showErrorWithText:BC_STRING_ABOVE_MAXIMUM_LIMIT];
                 } else if ([[result objectForKey:DICTIONARY_KEY_ERROR] containsString:ERROR_MINIMUM]) {
-                    [self showErrorText:BC_STRING_BELOW_MINIMUM_LIMIT];
+                    [self.exchangeView showErrorWithText:BC_STRING_BELOW_MINIMUM_LIMIT];
                 } else {
-                    [self showErrorText:BC_STRING_FAILED_TO_LOAD_EXCHANGE_DATA];
+                    [self.exchangeView showErrorWithText:BC_STRING_FAILED_TO_LOAD_EXCHANGE_DATA];
                 }
             }
         }];
@@ -889,7 +808,7 @@
 
 - (void)getApproximateQuoteAfterTimer
 {
-    [self disablePaymentButtons];
+    [self.exchangeView disablePaymentButtons];
     [self getApproximateQuote];
     self.quoteTimer = nil;
 }
@@ -899,34 +818,16 @@
     if (self.currentDataTask) {
         [self.currentDataTask cancel];
         self.currentDataTask = nil;
-        [self.spinner stopAnimating];
+        [self.exchangeView stopSpinner];
     }
 }
 
 - (void)hideKeyboard
 {
-    [self.bottomRightField resignFirstResponder];
-    [self.bottomLeftField resignFirstResponder];
-    [self.topLeftField resignFirstResponder];
-    [self.topRightField resignFirstResponder];
-}
-
-- (void)highlightInvalidAmounts
-{
-    UIColor *newColor = UIColor.error;
-    self.topLeftField.textColor = newColor;
-    self.topRightField.textColor = newColor;
-    self.bottomLeftField.textColor = newColor;
-    self.bottomRightField.textColor = newColor;
-}
-
-- (void)removeHighlightFromAmounts
-{
-    UIColor *newColor = UIColor.gray5;
-    self.topLeftField.textColor = newColor;
-    self.topRightField.textColor = newColor;
-    self.bottomLeftField.textColor = newColor;
-    self.bottomRightField.textColor = newColor;
+    [self.exchangeView.bottomRightField resignFirstResponder];
+    [self.exchangeView.bottomLeftField resignFirstResponder];
+    [self.exchangeView.topLeftField resignFirstResponder];
+    [self.exchangeView.topRightField resignFirstResponder];
 }
 
 - (BOOL)hasAmountGreaterThanZero:(id)amount
@@ -988,28 +889,6 @@
     return [NSString stringWithFormat:@"%@_%@", self.fromSymbol, self.toSymbol];
 }
 
-- (void)enableAssetToggleButton
-{
-    self.assetToggleButton.userInteractionEnabled = YES;
-    [self.assetToggleButton setImage:[UIImage imageNamed:IMAGE_NAME_SWITCH_CURRENCIES] forState:UIControlStateNormal];
-}
-
-- (void)disableAssetToggleButton
-{
-    self.assetToggleButton.userInteractionEnabled = NO;
-    [self.assetToggleButton setImage:nil forState:UIControlStateNormal];
-}
-
-- (NSString *)fiatPlaceholder
-{
-    return [NSString stringWithFormat:FIAT_PLACEHOLDER_DECIMAL_SEPARATOR_ARGUMENT, [[NSLocale currentLocale] objectForKey:NSLocaleDecimalSeparator]];;
-}
-
-- (NSString *)assetPlaceholder
-{
-    return [NSString stringWithFormat:BTC_PLACEHOLDER_DECIMAL_SEPARATOR_ARGUMENT, [[NSLocale currentLocale] objectForKey:NSLocaleDecimalSeparator]];
-}
-
 - (NSString *)bitcoinLabelText
 {
     if ([WalletManager.sharedInstance.wallet getActiveAccountsCount:LegacyAssetTypeBitcoin] > 1) {
@@ -1037,7 +916,7 @@
 - (void)didChangeFrom
 {
     [self clearAmount];
-    [self clearFields];
+    [self.exchangeView clearFields];
     
     if ([self.fromSymbol isEqualToString:self.toSymbol]) {
         [self switchToSymbol];
@@ -1047,7 +926,7 @@
 - (void)didChangeTo
 {
     [self clearAmount];
-    [self clearFields];
+    [self.exchangeView clearFields];
     
     if ([self.fromSymbol isEqualToString:self.toSymbol]) {
         [self switchFromSymbol];
@@ -1134,10 +1013,7 @@
 
 - (void)closeButtonClicked
 {
-    [self.topLeftField resignFirstResponder];
-    [self.topRightField resignFirstResponder];
-    [self.bottomLeftField resignFirstResponder];
-    [self.bottomRightField resignFirstResponder];
+    [self.exchangeView hideKeyboard];
 }
 
 #pragma mark - Exchange Create View Delegate
