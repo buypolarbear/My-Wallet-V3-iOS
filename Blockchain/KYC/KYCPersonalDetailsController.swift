@@ -18,9 +18,9 @@ final class KYCPersonalDetailsController: UIViewController, KYCOnboardingNavigat
 
     // MARK: - IBOutlets
 
-    @IBOutlet var firstNameField: UITextField!
-    @IBOutlet var lastNameField: UITextField!
-    @IBOutlet var birthdateField: UITextField!
+    @IBOutlet private var firstNameField: UITextField!
+    @IBOutlet private var lastNameField: UITextField!
+    @IBOutlet private var birthdateField: UITextField!
     @IBOutlet var primaryButton: PrimaryButton!
 
     override func viewDidLoad() {
