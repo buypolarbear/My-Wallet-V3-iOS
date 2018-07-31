@@ -39,24 +39,19 @@ final class KYCPersonalDetailsController: UIViewController, KYCOnboardingNavigat
 
     private func setUpBirthdatePicker() {
         let toolBar = UIToolbar()
-        toolBar.barStyle = .default
-        toolBar.isTranslucent = true
         toolBar.sizeToFit()
-
         let doneButton = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(submitBirthdate))
         let spaceButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let cancelButton = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(hideBirthdatePicker))
         toolBar.setItems([cancelButton, spaceButton, doneButton], animated: false)
-        toolBar.isUserInteractionEnabled = true
-
         birthdateField.inputAccessoryView = toolBar
     }
 
     @objc private func submitBirthdate() {
-        let dateFormatter1 = DateFormatter()
-        dateFormatter1.dateStyle = .medium
-        dateFormatter1.timeStyle = .none
-        birthdateField.text = dateFormatter1.string(from: birthdatePicker.date)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .none
+        birthdateField.text = dateFormatter.string(from: birthdatePicker.date)
         birthdateField.resignFirstResponder()
     }
 
