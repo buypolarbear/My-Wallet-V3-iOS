@@ -85,6 +85,9 @@ private extension ExchangeCreateView {
         setupTopFields(amountView: amountView)
         setupBottomFields(amountView: amountView)
         setupFiatLabel(amountView: amountView)
+        setupMinAndMaxButtons(amountView: amountView)
+        setupErrorTextView(amountView: amountView)
+        setupContinueButton()
     }
 
     var windowWidth: CGFloat { return frame.size.width }
@@ -214,8 +217,9 @@ private extension ExchangeCreateView {
         amountView.addSubview(fiatLabel!)
     }
 
+    var minMaxButtonHeight: CGFloat { return 50 }
+
     func setupMinAndMaxButtons(amountView: UIView) {
-        let buttonHeight: CGFloat = 50
         let lineAboveButtonsView = BCLine(yPosition: amountView.frame.origin.y + amountView.frame.size.height)
         addSubview(lineAboveButtonsView!)
 
@@ -223,14 +227,19 @@ private extension ExchangeCreateView {
             x: 0,
             y: amountView.frame.origin.y + amountView.frame.size.height + 0.5,
             width: windowWidth,
-            height: buttonHeight
+            height: minMaxButtonHeight
         ))
         buttonsView.backgroundColor = UIColor.grayLine
         addSubview(buttonsView)
 
         let buttonFont = UIFont(name: Constants.FontNames.montserratLight, size: Constants.FontSizes.Small)
         let dividerLineWidth: CGFloat = 0.5
-        let useMinButton = UIButton(frame: CGRect(x: 0, y: 0, width: buttonsView.frame.size.width / 2 - dividerLineWidth / 2, height: buttonHeight))
+        let useMinButton = UIButton(frame: CGRect(
+            x: 0,
+            y: 0,
+            width: buttonsView.frame.size.width / 2 - dividerLineWidth / 2,
+            height: minMaxButtonHeight
+        ))
         useMinButton.titleLabel?.font = buttonFont
         useMinButton.backgroundColor = UIColor.white
         useMinButton.setTitleColor(UIColor.brandSecondary, for: .normal)
@@ -243,7 +252,7 @@ private extension ExchangeCreateView {
             x: useMaxButtonOriginX,
             y: 0,
             width: buttonsView.frame.size.width - useMaxButtonOriginX,
-            height: buttonHeight
+            height: minMaxButtonHeight
         ))
         useMaxButton.titleLabel?.font = buttonFont
         useMaxButton.backgroundColor = UIColor.white
@@ -253,10 +262,10 @@ private extension ExchangeCreateView {
         buttonsView.addSubview(useMaxButton)
     }
 
-    func setupErrorTextView(buttonsView: UIView) {
+    func setupErrorTextView(amountView: UIView) {
         let errorTextView = UITextView(frame: CGRect(
             x: 15,
-            y: buttonsView.frame.origin.y + buttonsView.frame.size.height + 8,
+            y: amountView.frame.origin.y + amountView.frame.size.height + 0.5 + minMaxButtonHeight + 8,
             width: windowWidth - 30,
             height: 60
         ))
