@@ -20,7 +20,7 @@
 
 #define IMAGE_NAME_SWITCH_CURRENCIES @"switch_currencies"
 
-@interface ExchangeCreateViewController () <UITextFieldDelegate, FromToButtonDelegate, AddressSelectionDelegate, ContinueButtonInputAccessoryViewDelegate>
+@interface ExchangeCreateViewController () <UITextFieldDelegate, FromToButtonDelegate, AddressSelectionDelegate, ContinueButtonInputAccessoryViewDelegate, ExchangeCreateViewDelegate>
 
 @property (nonatomic) FromToView *fromToView;
 
@@ -76,6 +76,8 @@
 
 @property (nonatomic) ContinueButtonInputAccessoryView *continuePaymentAccessoryView;
 @property (nonatomic) UIButton *continueButton;
+
+@property (nonatomic) ExchangeCreateView *exchangeView;
 @end
 
 @implementation ExchangeCreateViewController
@@ -84,7 +86,9 @@
 {
     [super viewDidLoad];
     
-    [self setupViews];
+    self.exchangeView = [[ExchangeCreateView alloc] initWithFrame:self.view.bounds];
+    [self.view addSubview:self.exchangeView];
+    [self.exchangeView setupWithCreateViewDelegate:self fromToButtonDelegate:self continueButtonInputAccessoryDelegate:self textFieldDelegate:self];
     
     self.btcAccount = [WalletManager.sharedInstance.wallet getDefaultAccountIndexForAssetType:LegacyAssetTypeBitcoin];
     
@@ -119,11 +123,6 @@
     
     [self.quoteTimer invalidate];
     self.quoteTimer = nil;
-}
-
-- (void)setupViews
-{
-    // TODO remove
 }
 
 #pragma mark - JS Callbacks
@@ -605,65 +604,6 @@
             }
         }
     }
-}
-
-#pragma mark - Gesture Actions
-
-- (void)assetToggleButtonClicked
-{
-    [self clearFieldOfSymbol:self.fromSymbol];
-
-    NSString *toSymbol = self.toSymbol;
-    if ([toSymbol isEqualToString:CURRENCY_SYMBOL_BTC]) {
-        [self selectFromBitcoin];
-    } else if ([toSymbol isEqualToString:CURRENCY_SYMBOL_ETH]) {
-        [self selectFromEther];
-    } else if ([toSymbol isEqualToString:CURRENCY_SYMBOL_BCH]) {
-        [self selectFromBitcoinCash];
-    }
-}
-
-- (void)fromButtonClicked
-{
-    [self selectAccountClicked:SelectModeExchangeAccountFrom];
-}
-
-- (void)toButtonClicked
-{
-    [self selectAccountClicked:SelectModeExchangeAccountTo];
-}
-
-- (void)selectAccountClicked:(SelectMode)selectMode
-{
-    BCAddressSelectionView *selectorView = [[BCAddressSelectionView alloc] initWithWallet:WalletManager.sharedInstance.wallet selectMode:selectMode delegate:self];
-    selectorView.frame = [UIView rootViewSafeAreaFrameWithNavigationBar:YES tabBar:NO assetSelector:NO];
-    
-    UIViewController *viewController = [UIViewController new];
-    viewController.automaticallyAdjustsScrollViewInsets = NO;
-    [viewController.view addSubview:selectorView];
-    
-    [self.navigationController pushViewController:viewController animated:YES];
-    BCNavigationController *navigationController = (BCNavigationController *)self.navigationController;
-    navigationController.headerTitle = selectMode == SelectModeExchangeAccountTo ? BC_STRING_TO : BC_STRING_FROM;
-}
-
-- (void)useMinButtonClicked
-{
-    [self autoFillFromAmount:self.minimum];
-}
-
-- (void)useMaxButtonClicked
-{
-    id maximum = [self.maximum compare:self.maximumHardLimit] == NSOrderedAscending ? self.maximum : self.maximumHardLimit;
-    
-    id maxAmount;
-    if ([self hasEnoughFunds:self.fromSymbol] && [self.availableBalance compare:@0] != NSOrderedSame && [self.availableBalance compare:maximum] == NSOrderedAscending) {
-        maxAmount = self.availableBalance;
-    } else {
-        maxAmount = maximum;
-    }
-    
-    [self autoFillFromAmount:maxAmount];
 }
 
 #pragma mark - View actions
@@ -1198,6 +1138,65 @@
     [self.topRightField resignFirstResponder];
     [self.bottomLeftField resignFirstResponder];
     [self.bottomRightField resignFirstResponder];
+}
+
+#pragma mark - Exchange Create View Delegate
+
+- (void)assetToggleButtonClicked
+{
+    [self clearFieldOfSymbol:self.fromSymbol];
+
+    NSString *toSymbol = self.toSymbol;
+    if ([toSymbol isEqualToString:CURRENCY_SYMBOL_BTC]) {
+        [self selectFromBitcoin];
+    } else if ([toSymbol isEqualToString:CURRENCY_SYMBOL_ETH]) {
+        [self selectFromEther];
+    } else if ([toSymbol isEqualToString:CURRENCY_SYMBOL_BCH]) {
+        [self selectFromBitcoinCash];
+    }
+}
+
+- (void)fromButtonClicked
+{
+    [self selectAccountClicked:SelectModeExchangeAccountFrom];
+}
+
+- (void)toButtonClicked
+{
+    [self selectAccountClicked:SelectModeExchangeAccountTo];
+}
+
+- (void)selectAccountClicked:(SelectMode)selectMode
+{
+    BCAddressSelectionView *selectorView = [[BCAddressSelectionView alloc] initWithWallet:WalletManager.sharedInstance.wallet selectMode:selectMode delegate:self];
+    selectorView.frame = [UIView rootViewSafeAreaFrameWithNavigationBar:YES tabBar:NO assetSelector:NO];
+
+    UIViewController *viewController = [UIViewController new];
+    viewController.automaticallyAdjustsScrollViewInsets = NO;
+    [viewController.view addSubview:selectorView];
+
+    [self.navigationController pushViewController:viewController animated:YES];
+    BCNavigationController *navigationController = (BCNavigationController *)self.navigationController;
+    navigationController.headerTitle = selectMode == SelectModeExchangeAccountTo ? BC_STRING_TO : BC_STRING_FROM;
+}
+
+- (void)useMinButtonClicked
+{
+    [self autoFillFromAmount:self.minimum];
+}
+
+- (void)useMaxButtonClicked
+{
+    id maximum = [self.maximum compare:self.maximumHardLimit] == NSOrderedAscending ? self.maximum : self.maximumHardLimit;
+
+    id maxAmount;
+    if ([self hasEnoughFunds:self.fromSymbol] && [self.availableBalance compare:@0] != NSOrderedSame && [self.availableBalance compare:maximum] == NSOrderedAscending) {
+        maxAmount = self.availableBalance;
+    } else {
+        maxAmount = maximum;
+    }
+
+    [self autoFillFromAmount:maxAmount];
 }
 
 @end

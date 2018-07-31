@@ -42,17 +42,20 @@ import Foundation
     private weak var createViewDelegate: ExchangeCreateViewDelegate?
     private weak var fromToButtonDelegate: FromToButtonDelegate?
     private weak var continueButtonInputAccessoryDelegate: ContinueButtonInputAccessoryViewDelegate?
+    private weak var textFieldDelegate: UITextFieldDelegate?
 }
 
 extension ExchangeCreateView {
     @objc func setup(
         createViewDelegate: ExchangeCreateViewDelegate,
         fromToButtonDelegate: FromToButtonDelegate,
-        continueButtonInputAccessoryDelegate: ContinueButtonInputAccessoryViewDelegate
+        continueButtonInputAccessoryDelegate: ContinueButtonInputAccessoryViewDelegate,
+        textFieldDelegate: UITextFieldDelegate
     ) {
         self.createViewDelegate = createViewDelegate
         self.fromToButtonDelegate = fromToButtonDelegate
         self.continueButtonInputAccessoryDelegate = continueButtonInputAccessoryDelegate
+        self.textFieldDelegate = textFieldDelegate
 
         backgroundColor = UIColor.lightGray
         setupSubviews()
@@ -99,7 +102,7 @@ private extension ExchangeCreateView {
         let topLeftLabel = UILabel(frame: topLeftLabelFrame)
         topLeftLabel.font = smallFont
         topLeftLabel.textColor = UIColor.gray5
-        topLeftLabel.text = AssetType.bitcoin.description
+        topLeftLabel.text = AssetType.bitcoin.symbol
         topLeftLabel.center = CGPoint(x: topLeftLabel.center.x, y: FromToView.self.rowHeight() / 2)
 
         leftLabel = topLeftLabel
@@ -125,7 +128,7 @@ private extension ExchangeCreateView {
     }
 
     var topRightLabelFrame: CGRect { return CGRect(
-        x: toggleButtonFrame.origin.x + toggleButtonFrame.size.width + 15,
+        x: self.assetToggleButton!.frame.origin.x + self.assetToggleButton!.frame.size.width + 15,
         y: 12,
         width: 40,
         height: 30)
@@ -135,7 +138,7 @@ private extension ExchangeCreateView {
         let topRightLabel = UILabel(frame: topRightLabelFrame)
         topRightLabel.font = smallFont
         topRightLabel.textColor = UIColor.gray5
-        topRightLabel.text = AssetType.ethereum.description
+        topRightLabel.text = AssetType.ethereum.symbol
         topRightLabel.center = CGPoint(x: topRightLabel.center.x, y: FromToView.self.rowHeight() / 2)
         rightLabel = topRightLabel
         amountView.addSubview(topRightLabel)
@@ -149,21 +152,19 @@ private extension ExchangeCreateView {
 
     var leftFieldOriginX: CGFloat { return topLeftLabelFrame.origin.x + topLeftLabelFrame.size.width + 8 }
     var rightFieldOriginX: CGFloat { return topRightLabelFrame.origin.x + topRightLabelFrame.size.width + 8 }
-    var leftFieldWidth: CGFloat { return toggleButtonFrame.origin.x - 8 - leftFieldOriginX }
+    var leftFieldWidth: CGFloat { return self.assetToggleButton!.frame.origin.x - 8 - leftFieldOriginX }
     var rightFieldWidth: CGFloat { return windowWidth - 8 - rightFieldOriginX }
 
     func setupTopFields(amountView: UIView) {
-        let leftField = BCSecureTextField(frame: CGRect(x: leftFieldOriginX, y: 12, width: leftFieldWidth, height: 30))
+        let leftField = inputTextField(frame: CGRect(x: leftFieldOriginX, y: 12, width: leftFieldWidth, height: 30))
         amountView.addSubview(leftField)
         leftField.placeholder = assetPlaceholder
-        leftField.inputAccessoryView = inputAccessoryView
         leftField.center = CGPoint(x: leftField.center.x, y: FromToView.self.rowHeight() / 2)
         topLeftField = leftField
         btcField = topLeftField
-        let rightField = BCSecureTextField(frame: CGRect(x: rightFieldOriginX, y: 12, width: rightFieldWidth, height: 30))
+        let rightField = inputTextField(frame: CGRect(x: rightFieldOriginX, y: 12, width: rightFieldWidth, height: 30))
         amountView.addSubview(rightField)
         rightField.placeholder = assetPlaceholder
-        rightField.inputAccessoryView = inputAccessoryView
         rightField.center = CGPoint(x: rightField.center.x, y: FromToView.self.rowHeight() / 2)
         topRightField = rightField
         ethField = topRightField
@@ -179,18 +180,17 @@ private extension ExchangeCreateView {
         dividerLine.backgroundColor = UIColor.grayLine
         amountView.addSubview(dividerLine)
 
-        bottomLeftField = BCSecureTextField(frame: CGRect(
+        bottomLeftField = inputTextField(frame: CGRect(
             x: leftFieldOriginX,
             y: dividerLine.frame.origin.y + dividerLine.frame.size.height + 8,
             width: leftFieldWidth,
             height: 30
         ))
         amountView.addSubview(bottomLeftField!)
-        bottomLeftField?.inputAccessoryView = inputAccessoryView
         bottomLeftField?.placeholder = fiatPlaceholder
         bottomLeftField?.center = CGPoint(x: bottomLeftField?.center.x ?? 0.0, y: FromToView.self.rowHeight() * 1.5)
 
-        bottomRightField = BCSecureTextField(frame: CGRect(
+        bottomRightField = inputTextField(frame: CGRect(
             x: rightFieldOriginX,
             y: dividerLine.frame.origin.y + dividerLine.frame.size.height + 8,
             width: rightFieldWidth,
@@ -198,7 +198,6 @@ private extension ExchangeCreateView {
         ))
         amountView.addSubview(bottomRightField!)
         bottomRightField?.placeholder = fiatPlaceholder
-        bottomRightField?.inputAccessoryView = inputAccessoryView
         bottomRightField?.center = CGPoint(x: bottomRightField!.center.x, y: FromToView.self.rowHeight() * 1.5)
     }
 
@@ -318,5 +317,15 @@ private extension ExchangeCreateView {
             afterDecimal += "0"
         }
         return "0\(decimalSeparator)" + afterDecimal
+    }
+
+    func inputTextField(frame: CGRect) -> BCSecureTextField {
+        let textField = BCSecureTextField(frame: frame)
+        textField.keyboardType = .decimalPad
+        textField.font = UIFont(name: Constants.FontNames.montserratLight, size: Constants.FontSizes.Small)
+        textField.textColor = UIColor.gray5
+        textField.delegate = textFieldDelegate
+        textField.inputAccessoryView = continuePaymentAccessoryView
+        return textField
     }
 }
