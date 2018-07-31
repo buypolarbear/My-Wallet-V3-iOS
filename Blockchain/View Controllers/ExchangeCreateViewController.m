@@ -742,21 +742,26 @@
     
     [self cancelCurrentDataTask];
     
-    BOOL usingFromField = self.exchangeView.lastChangedField != self.exchangeView.topRightField && self.exchangeView.lastChangedField != self.exchangeView.bottomRightField;
+    ExchangeCreateView *exchangeView = self.exchangeView;
+
+    BOOL usingFromField = exchangeView.lastChangedField != exchangeView.topRightField && exchangeView.lastChangedField != exchangeView.bottomRightField;
 
     NSString *amount;
     if ([self hasAmountGreaterThanZero:self.amount]) {
 
-        [self.exchangeView disableAssetToggleButton];
-        [self.exchangeView startSpinner];
+        [exchangeView disableAssetToggleButton];
+        [exchangeView startSpinner];
         
         amount = [self amountString:self.amount];
         
-        self.currentDataTask = [WalletManager.sharedInstance.wallet getApproximateQuote:[self coinPair] usingFromField:usingFromField amount:amount completion:^(NSDictionary *result, NSURLResponse *response, NSError *error) {
+        self.currentDataTask = [WalletManager.sharedInstance.wallet getApproximateQuote:[self coinPair]
+                                                                         usingFromField:usingFromField
+                                                                                 amount:amount
+                                                                             completion:^(NSDictionary *result, NSURLResponse *response, NSError *error) {
             DLog(@"approximate quote result: %@", result);
             
-            [self.exchangeView enableAssetToggleButton];
-            [self.exchangeView stopSpinner];
+            [exchangeView enableAssetToggleButton];
+            [exchangeView stopSpinner];
             
             NSDictionary *resultSuccess = [result objectForKey:DICTIONARY_KEY_SUCCESS];
             if (resultSuccess) {
@@ -764,11 +769,11 @@
             } else {
                 DLog(@"Error getting approximate quote:%@", result);
                 if ([[result objectForKey:DICTIONARY_KEY_ERROR] containsString:ERROR_MAXIMUM]) {
-                    [self.exchangeView showErrorWithText:BC_STRING_ABOVE_MAXIMUM_LIMIT];
+                    [exchangeView showErrorWithText:BC_STRING_ABOVE_MAXIMUM_LIMIT];
                 } else if ([[result objectForKey:DICTIONARY_KEY_ERROR] containsString:ERROR_MINIMUM]) {
-                    [self.exchangeView showErrorWithText:BC_STRING_BELOW_MINIMUM_LIMIT];
+                    [exchangeView showErrorWithText:BC_STRING_BELOW_MINIMUM_LIMIT];
                 } else {
-                    [self.exchangeView showErrorWithText:BC_STRING_FAILED_TO_LOAD_EXCHANGE_DATA];
+                    [exchangeView showErrorWithText:BC_STRING_FAILED_TO_LOAD_EXCHANGE_DATA];
                 }
             }
         }];
