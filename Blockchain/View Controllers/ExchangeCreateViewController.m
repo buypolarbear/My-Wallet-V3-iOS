@@ -716,7 +716,7 @@
     
     [self updateAvailableBalance];
 
-    [self hideKeyboard];
+    [self.exchangeView hideKeyboard];
     
     [self.exchangeView disablePaymentButtons];
     
@@ -820,14 +820,6 @@
         self.currentDataTask = nil;
         [self.exchangeView stopSpinner];
     }
-}
-
-- (void)hideKeyboard
-{
-    [self.exchangeView.bottomRightField resignFirstResponder];
-    [self.exchangeView.bottomLeftField resignFirstResponder];
-    [self.exchangeView.topLeftField resignFirstResponder];
-    [self.exchangeView.topRightField resignFirstResponder];
 }
 
 - (BOOL)hasAmountGreaterThanZero:(id)amount
@@ -1004,7 +996,7 @@
 
 - (void)continueButtonClicked
 {
-    [self hideKeyboard];
+    [self.exchangeView hideKeyboard];
     
     [[LoadingViewPresenter sharedInstance] showBusyViewWithLoadingText:[LocalizationConstantsObjcBridge gettingQuote]];
     
