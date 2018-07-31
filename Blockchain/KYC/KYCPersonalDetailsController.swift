@@ -90,3 +90,14 @@ final class KYCPersonalDetailsController: UIViewController, KYCOnboardingNavigat
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {}
 }
+
+extension KYCPersonalDetailsController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        switch textField {
+        case firstNameField: lastNameField.becomeFirstResponder()
+        case lastNameField: birthdateField.becomeFirstResponder()
+        default: return false
+        }
+        return false
+    }
+}
