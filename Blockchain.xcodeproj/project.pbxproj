@@ -200,6 +200,7 @@
 		5149BD03205718ED00DC88A0 /* Crashlytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 513467FF2056BC6700DE6A1E /* Crashlytics.framework */; };
 		514B29A1210FFA9600D757B5 /* KYCNetworkRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 514B29A0210FFA9600D757B5 /* KYCNetworkRequest.swift */; };
 		514B29A2210FFA9600D757B5 /* KYCNetworkRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 514B29A0210FFA9600D757B5 /* KYCNetworkRequest.swift */; };
+		5150E52B21131C29000966BE /* KYCWelcome.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5150E52A21131C29000966BE /* KYCWelcome.storyboard */; };
 		515315F12056C0EE000161DF /* libicucore.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 23C543A21D0F4197007A5F58 /* libicucore.tbd */; };
 		515315F32056C1A0000161DF /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 515315F22056C1A0000161DF /* libcrypto.a */; };
 		51578AEA20B448BF00B0080A /* WalletKeyImportDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51578AE920B448BF00B0080A /* WalletKeyImportDelegate.swift */; };
@@ -1331,6 +1332,7 @@
 		51392045205C60520025EE33 /* Cert */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Cert; sourceTree = "<group>"; };
 		513C826B20EBF30C00ECDE52 /* UIDevice+Biometrics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice+Biometrics.swift"; sourceTree = "<group>"; };
 		514B29A0210FFA9600D757B5 /* KYCNetworkRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCNetworkRequest.swift; sourceTree = "<group>"; };
+		5150E52A21131C29000966BE /* KYCWelcome.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = KYCWelcome.storyboard; sourceTree = "<group>"; };
 		515315F22056C1A0000161DF /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "Submodules/OpenSSL-for-iPhone/lib/libcrypto.a"; sourceTree = "<group>"; };
 		51578AE920B448BF00B0080A /* WalletKeyImportDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletKeyImportDelegate.swift; sourceTree = "<group>"; };
 		51578AED20B44AD400B0080A /* KeyImportCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyImportCoordinator.swift; sourceTree = "<group>"; };
@@ -2812,12 +2814,13 @@
 			isa = PBXGroup;
 			children = (
 				5138353A210253A700767B2E /* KYCAddress.storyboard */,
+				3A7F7EEC210F9888001E20AF /* KYCAddressDetailViewController.storyboard */,
 				5138353D210253A700767B2E /* KYCCountrySelection.storyboard */,
 				5138353F210253A700767B2E /* KYCOnboardingNavigation.storyboard */,
 				51383539210253A700767B2E /* KYCOnboardingScreen.storyboard */,
 				5138353C210253A700767B2E /* KYCPersonalDetails.storyboard */,
 				51383540210253A700767B2E /* KYCVerifyPhoneNumber.storyboard */,
-				3A7F7EEC210F9888001E20AF /* KYCAddressDetailViewController.storyboard */,
+				5150E52A21131C29000966BE /* KYCWelcome.storyboard */,
 			);
 			path = Storyboards;
 			sourceTree = "<group>";
@@ -4364,6 +4367,7 @@
 				9F2D934E14C0792D0053F0FF /* TransactionCell.xib in Resources */,
 				3A3047E4210B664800C09E6D /* LocationSuggestionCell.xib in Resources */,
 				C9BE918C1945F5FC00FD516D /* Images.xcassets in Resources */,
+				5150E52B21131C29000966BE /* KYCWelcome.storyboard in Resources */,
 				515EFADD210282B4002350B6 /* AccountsAndAddresses.strings in Resources */,
 				ECD244EC19A8AC45004B1F40 /* PEKeyboard-3-dot.png in Resources */,
 				515EFAE0210282B4002350B6 /* SendCoins.strings in Resources */,
