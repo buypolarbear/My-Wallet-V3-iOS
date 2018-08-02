@@ -15,6 +15,6 @@ final class KYCOnboardingNavigationController: UINavigationController {
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-        KYCCountrySelectionDataSource.dataSource.fetchListOfCountries()
+        // TODO: prefetch data...
     }
 }
