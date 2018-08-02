@@ -9,29 +9,19 @@
 import UIKit
 
 /// Country selection screen in KYC flow
-final class KYCCountrySelectionController: UIViewController, KYCOnboardingNavigation {
-
-    // MARK: - Properties
-
-    var segueIdentifier: String? = "promptForPersonalDetails"
-
-    // MARK: - IBOutlets
-
-    @IBOutlet fileprivate var countryPicker: UIPickerView!
-    @IBOutlet var primaryButton: PrimaryButton!
+final class KYCCountrySelectionController: UITableViewController {
 
     // MARK: - View Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        countryPicker.dataSource = KYCCountrySelectionDataSource.dataSource
         navigationItem.title = LocalizationConstants.KYC.countrySelectionTitle
     }
 
     // MARK: - Actions
 
     @IBAction func primaryButtonTapped(_ sender: Any) {
-        performSegue(withIdentifier: segueIdentifier!, sender: self)
+        performSegue(withIdentifier: "promptForPersonalDetails", sender: self)
     }
 
     // MARK: - Navigation

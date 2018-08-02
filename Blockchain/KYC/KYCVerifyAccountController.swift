@@ -23,7 +23,6 @@ final class KYCVerifyAccountController: KYCOnboardingController {
         super.viewDidLoad()
         navigationItem.title = "Verify your identity"
         // Depends on Onfido SDK integration...
-        segueIdentifier = ""
         imageView.image = UIImage(named: "IdentityVerification")
         titleLabel.text = "Photo Verification Needed"
         descriptionLabel.text = "You're almost there! Just grab your government issued photo ID to complete your verification."
