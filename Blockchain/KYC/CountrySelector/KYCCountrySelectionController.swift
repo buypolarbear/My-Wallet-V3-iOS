@@ -9,26 +9,48 @@
 import UIKit
 
 /// Country selection screen in KYC flow
-final class KYCCountrySelectionController: UITableViewController {
+final class KYCCountrySelectionController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+
+    // MARK: Private Properties
+
+    fileprivate let searchController = UISearchController(searchResultsController: nil)
+
+    // MARK: Private IBOutlets
+
+    @IBOutlet fileprivate var headline: UILabel!
+    @IBOutlet fileprivate var subheadline: UILabel!
+    @IBOutlet fileprivate var progressView: UIProgressView!
+    @IBOutlet fileprivate var tableView: UITableView!
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.showsCancelButton = false
+
+        // TODO: Localize
+        searchController.searchBar.placeholder = "Search"
+        tableView.tableHeaderView = searchController.searchBar
+
+        dataProvider = CountryDataProvider()
+        dataProvider?.fetchListOfCountries()
+
+    }
 
     // MARK: - Properties
 
-    var dataProvider: CountryDataProvider? {
-        didSet {
-            tableView.reloadData()
-        }
-    }
+    var dataProvider: CountryDataProvider?
 
     // MARK: UITableViewDataSource
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let countries = dataProvider?.countries else {
             return 0
         }
         return countries.count
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let countryCell = tableView.dequeueReusableCell(withIdentifier: "CountryCell"),
             let countries = dataProvider?.countries else {
                 return UITableViewCell()
@@ -39,7 +61,7 @@ final class KYCCountrySelectionController: UITableViewController {
 
     // MARK: - UITableViewDelegate
 
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "promptForPersonalDetails", sender: self)
     }
 
