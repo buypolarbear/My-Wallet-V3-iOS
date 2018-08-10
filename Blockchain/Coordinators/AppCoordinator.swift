@@ -274,15 +274,17 @@ extension AppCoordinator: SideMenuViewControllerDelegate {
     }
 
     private func handleWebLogin() {
-        let webLoginViewController = WebLoginViewController()
-        let navigationViewController = BCNavigationController(
-            rootViewController: webLoginViewController,
-            title: LocalizationConstants.SideMenu.loginToWebWallet
-        )
-        UIApplication.shared.keyWindow?.rootViewController?.topMostViewController?.present(
-            navigationViewController,
-            animated: true
-        )
+        let kycCoordinator = KYCCoordinator()
+        kycCoordinator.start()
+//        let webLoginViewController = WebLoginViewController()
+//        let navigationViewController = BCNavigationController(
+//            rootViewController: webLoginViewController,
+//            title: LocalizationConstants.SideMenu.loginToWebWallet
+//        )
+//        UIApplication.shared.keyWindow?.rootViewController?.topMostViewController?.present(
+//            navigationViewController,
+//            animated: true
+//        )
     }
 
     private func handleSupport() {

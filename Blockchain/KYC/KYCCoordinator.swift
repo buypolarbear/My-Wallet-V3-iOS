@@ -14,11 +14,12 @@ import Foundation
 @objc class KYCCoordinator: NSObject, Coordinator {
 
     func start() {
-        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
-            Logger.shared.warning("Cannot start KYC. rootViewController is nil.")
-            return
-        }
-        start(from: rootViewController)
+        authenticate()
+//        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
+//            Logger.shared.warning("Cannot start KYC. rootViewController is nil.")
+//            return
+//        }
+//        start(from: rootViewController)
     }
 
     @objc func start(from viewController: UIViewController) {
@@ -72,5 +73,20 @@ import Foundation
         navigationController.pushViewController(viewController, animated: false)
         navigationController.modalTransitionStyle = .coverVertical
         presentingViewController.present(navigationController, animated: true)
+    }
+
+    func authenticate() {
+        let success: (Data) -> Void = { data in
+
+        }
+
+        let error: (HTTPRequestError) -> Void = { error in
+
+        }
+
+        KYCAuthenticationAPI.getApiKey(email: WalletManager.shared.wallet.getEmail(),
+                                        guid: WalletManager.shared.wallet.guid,
+                                        success: success,
+                                        error: error)
     }
 }

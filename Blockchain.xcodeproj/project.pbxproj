@@ -658,6 +658,7 @@
 		C7CE34B81F4DCB7E00032806 /* CardsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C7CE34B71F4DCB7E00032806 /* CardsViewController.m */; };
 		C7CE34BB1F4DE14500032806 /* DashboardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C7CE34BA1F4DE14500032806 /* DashboardViewController.m */; };
 		C7CE34BE1F4E128900032806 /* BCAmountInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = C7CE34BD1F4E128900032806 /* BCAmountInputView.m */; };
+		C7E0FCCE211E12AE00B85D37 /* KYCAuthenticationAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E0FCCD211E12AE00B85D37 /* KYCAuthenticationAPI.swift */; };
 		C7E1A2902108FDFC0072DDA0 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5171E38F20F4F98000E8913E /* Colors.swift */; };
 		C7E1A2E8210A45B30072DDA0 /* ExchangeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E1A2E7210A45B20072DDA0 /* ExchangeCoordinator.swift */; };
 		C7E1A2E9210A45B30072DDA0 /* ExchangeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E1A2E7210A45B20072DDA0 /* ExchangeCoordinator.swift */; };
@@ -2979,6 +2980,7 @@
 		C7CE34BA1F4DE14500032806 /* DashboardViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DashboardViewController.m; sourceTree = "<group>"; };
 		C7CE34BC1F4E128900032806 /* BCAmountInputView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BCAmountInputView.h; sourceTree = "<group>"; };
 		C7CE34BD1F4E128900032806 /* BCAmountInputView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BCAmountInputView.m; sourceTree = "<group>"; };
+		C7E0FCCD211E12AE00B85D37 /* KYCAuthenticationAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KYCAuthenticationAPI.swift; sourceTree = "<group>"; };
 		C7E1A2E7210A45B20072DDA0 /* ExchangeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeCoordinator.swift; sourceTree = "<group>"; };
 		C7E275091F589C8D0054EFA5 /* ReceiveEtherViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReceiveEtherViewController.h; sourceTree = "<group>"; };
 		C7E2750A1F589C8D0054EFA5 /* ReceiveEtherViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReceiveEtherViewController.m; sourceTree = "<group>"; };
@@ -3454,6 +3456,7 @@
 			isa = PBXGroup;
 			children = (
 				3A3D5DBA211C98DE00E6C241 /* Personal */,
+				C7E0FCCD211E12AE00B85D37 /* KYCAuthenticationAPI.swift */,
 				602B9CCD2118E15200BD3D60 /* KYCAccountStatusController.swift */,
 				602B9CCE2118E15200BD3D60 /* KYCCoordinator.swift */,
 				602B9CB12118E15200BD3D60 /* KYCNetworkRequest.swift */,
@@ -7036,6 +7039,7 @@
 				AAFE9E9221016132002E4E1E /* PinError.swift in Sources */,
 				C790E1211E5345160063D141 /* BCVerifyEmailViewController.m in Sources */,
 				AA3CA9B22107F2B700C2AD46 /* LogDestination.swift in Sources */,
+				C7E0FCCE211E12AE00B85D37 /* KYCAuthenticationAPI.swift in Sources */,
 				3A3D5D8B211B44BD00E6C241 /* ProgressableView.swift in Sources */,
 				C71859571F4B695700745A87 /* TabControllerManager.m in Sources */,
 				3A76F902211A3BA5002F7946 /* DateFormatter+Conveniences.swift in Sources */,
