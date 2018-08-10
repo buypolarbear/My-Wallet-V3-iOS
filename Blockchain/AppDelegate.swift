@@ -102,7 +102,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillResignActive(_ application: UIApplication) {
         Logger.shared.debug("applicationWillResignActive")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             if application.applicationState != .active {
                 self.showBlurCurtain()
             }
