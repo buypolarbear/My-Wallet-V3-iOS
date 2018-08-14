@@ -9,10 +9,10 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--KYCPersonalDetails-->
+        <!--KYCPersonalDetailsController-->
         <scene sceneID="uPe-kt-Szi">
             <objects>
-                <viewControllerPlaceholder storyboardName="KYCPersonalDetails" id="p5l-MX-35I" sceneMemberID="viewController"/>
+                <viewControllerPlaceholder storyboardName="KYCPersonalDetailsController" id="p5l-MX-35I" sceneMemberID="viewController"/>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HKM-cD-64E" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="709" y="146"/>
