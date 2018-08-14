@@ -142,7 +142,7 @@ extension AppSettingsController {
     func createBadge(_ cell: UITableViewCell,  color: UIColor? = nil, _ using: KYCUserResponse? = nil) {
         cell.detailTextLabel?.layer.cornerRadius = 4
         cell.detailTextLabel?.layer.masksToBounds = true
-        cell.detailTextLabel?.backgroundColor = .unverified
+        cell.detailTextLabel?.backgroundColor = color
         cell.detailTextLabel?.textColor = .white
         cell.detailTextLabel?.frame.origin.x += 25
         cell.detailTextLabel?.font = UIFont(name: Constants.FontNames.montserratSemiBold, size: Constants.FontSizes.Tiny)

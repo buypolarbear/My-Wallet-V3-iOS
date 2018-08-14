@@ -142,14 +142,14 @@ extension SettingsTableViewController {
     }
     
     func prepareIdentityCell(_ cell: UITableViewCell) {
-        DispatchQueue.main.async {
-            self.getUserVerificationStatus { status, success in
+        self.getUserVerificationStatus { status, success in
+            DispatchQueue.main.async {
                 if success {
                     if let hasDetail = status?.kycState {
                         self.createBadge(cell, status)
-                        var asLowercased = hasDetail.lowercased()
+                        let asLowercased = hasDetail.lowercased()
                         let formattedString = asLowercased.capitalizingFirstLetter()
-                         cell.detailTextLabel?.text = "\(formattedString)"
+                        cell.detailTextLabel?.text = "\(formattedString)"
                     }
                 } else {
                     cell.detailTextLabel?.text = ""

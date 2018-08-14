@@ -690,16 +690,27 @@ MobileNumberDelegate, WalletAccountInfoDelegate {
         if !loadedSettings {
             reload()
         }
-        
-        if !(biometryTypeDescription() != nil) {
-            touchIDAsPin.isHidden = true
-        }
-        
-        let swipeToReceiveCall: AppFeatureConfiguration? = AppFeatureConfigurator.sharedInstance().configuration(for: .swipeToReceive)
-        if swipeToReceiveCall?.isEnabled == nil {
-            swipeToReceive?.isHidden = true
-        }
     }
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        
+        switch (indexPath.section, indexPath.row) {
+        case (sectionSecurity, pinBiometry):
+            if !(biometryTypeDescription() != nil) {
+                return 0
+            }
+        case (sectionSecurity, pinSwipeToReceive):
+            let swipeToReceiveCall: AppFeatureConfiguration? = AppFeatureConfigurator.sharedInstance().configuration(for: .swipeToReceive)
+            if swipeToReceiveCall?.isEnabled == nil {
+                swipeToReceive?.isHidden = true
+            }
+            return 0
+        default:
+            break
+        }
+        return UITableViewAutomaticDimension
+    }
+
     @objc func reload() {
         backupController?.reload()
         getAccountInfo()
