@@ -21,6 +21,15 @@ final class KYCVerifyIdentityController: KYCBaseViewController {
         case onfido
     }
 
+    // MARK: Factory
+
+    override class func make(with coordinator: KYCCoordinator) -> KYCVerifyIdentityController {
+        let controller = makeFromStoryboard()
+        controller.coordinator = coordinator
+        controller.pageType = .verifyIdentity
+        return controller
+    }
+
     // MARK: - Properties
     
     var currentProvider = VerificationProviders.onfido

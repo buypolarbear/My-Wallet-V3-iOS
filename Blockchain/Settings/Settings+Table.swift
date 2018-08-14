@@ -282,7 +282,7 @@ extension SettingsTableViewController {
         case sectionProfile:
             switch indexPath.row {
             case identityVerification:
-                AppCoordinator.sharedInstance().showKYCView()
+                KYCCoordinator().start()
                 return
             case profileWalletIdentifier:
                 walletIdentifierClicked()
