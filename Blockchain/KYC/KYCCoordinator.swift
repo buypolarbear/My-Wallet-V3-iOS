@@ -181,7 +181,7 @@ protocol KYCCoordinatorDelegate: class {
             Logger.shared.info("Session token obtained")
         }
 
-        let getApiKeySuccess: (Any) -> Void = { _ in
+        let getSessionToken: (Any) -> Void = { _ in
             KYCAuthenticationAPI.getSessionToken(
                 userId: "userId",
                 success: getSessionTokenSuccess,
@@ -189,28 +189,35 @@ protocol KYCCoordinatorDelegate: class {
             )
         }
 
-        let updateMetadataSuccess: (String) -> Void = { userId in
+        let getApiKey: (String) -> Void = { userId in
             KYCAuthenticationAPI.getApiKey(
                 userId: userId,
-                success: getApiKeySuccess,
+                success: getSessionToken,
                 error: error
             )
         }
 
-        let createUserSuccess: (Data) -> Void = { data in
-            WalletManager.shared.wallet.updateKYCUserCredential(
-                "response.userId",
-                lifetimeToken: "response.token",
-                success: updateMetadataSuccess,
+        let updateKYCUserCredentials: ((String, String)) -> Void = { (arg) in
+            let (userId, lifetimeToken) = arg
+            WalletManager.shared.wallet.updateKYCUserCredentials(
+                withUserId: userId,
+                lifetimeToken: lifetimeToken,
+                success: getApiKey,
                 error: error
             )
         }
 
-        KYCAuthenticationAPI.createUser(
-            email: WalletManager.shared.wallet.getEmail(),
-            guid: WalletManager.shared.wallet.guid,
-            success: createUserSuccess,
-            error: error
-        )
+        guard let userId = WalletManager.shared.wallet.kycUserId() else {
+            Logger.shared.error("No user ID found, creating user")
+            KYCAuthenticationAPI.createUser(
+                email: WalletManager.shared.wallet.getEmail(),
+                guid: WalletManager.shared.wallet.guid,
+                success: updateKYCUserCredentials,
+                error: error
+            )
+            return
+        }
+
+        getApiKey(userId)
     }
 }

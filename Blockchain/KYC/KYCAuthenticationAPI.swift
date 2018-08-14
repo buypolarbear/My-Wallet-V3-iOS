@@ -19,13 +19,16 @@ final class KYCAuthenticationAPI {
     static func createUser(
         email: String,
         guid: String,
-        success: @escaping (Data) -> Void,
+        success: @escaping (String, String) -> Void,
         error: @escaping (HTTPRequestError) -> Void
     ) {
+        let requestSuccess: (Data) -> Void = { data in
+            success("userId", "lifetimeToken")
+        }
         KYCNetworkRequest.init(
             post: KYCNetworkRequest.KYCEndpoints.POST.registerUser,
             parameters: [Keys.email: email, Keys.guid: guid],
-            taskSuccess: success,
+            taskSuccess: requestSuccess,
             taskFailure: error
         )
     }
