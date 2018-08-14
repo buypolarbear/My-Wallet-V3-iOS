@@ -170,8 +170,14 @@ extension SettingsTableViewController {
         DispatchQueue.main.async {
             self.getUserVerificationStatus { status, success in
                 if success {
-                    self.createBadge(cell, status)
-                    cell.detailTextLabel?.text =  status?.kycState
+                    if var hasDetail = status?.kycState {
+                        self.createBadge(cell, status)
+                        var asLowercased = hasDetail.lowercased()
+                        let formattedString = asLowercased.capitalizingFirstLetter()
+                         cell.detailTextLabel?.text = "\(formattedString)"
+                    }
+                } else {
+                    cell.detailTextLabel?.text = ""
                 }
             }
         }
