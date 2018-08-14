@@ -11,7 +11,7 @@ import Foundation
 extension SettingsTableViewController {
 
     enum SettingsCell {
-        case base, wallet, email, phoneNumber, currency, recovery, emailNotifications, twoFA, biometry, swipeReceive
+        case base, identity, wallet, email, phoneNumber, currency, recovery, emailNotifications, twoFA, biometry, swipeReceive
     }
 
     func reloadTableView() {
@@ -20,7 +20,7 @@ extension SettingsTableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case sectionProfile:
-            return 4
+            return 5
         case sectionPreferences:
             return 2
         case sectionSecurity:
@@ -62,8 +62,8 @@ extension SettingsTableViewController {
     }
     
     func prepareWalletCell(_ cell: UITableViewCell) {
-        cell.detailTextLabel?.font = UIFont(name: Constants.FontNames.montserratLight, size: Constants.FontSizes.ExtraSmall)
-        cell.detailTextLabel?.text = WalletManager.shared.wallet.guid
+        cell.detailTextLabel?.textColor = .brandPrimary
+        cell.detailTextLabel?.text = "Copy".localized()
     }
     
     func prepareEmailCell(_ cell: UITableViewCell) {
@@ -79,7 +79,7 @@ extension SettingsTableViewController {
         let selectedCurrencyCode = getLocalSymbolFromLatestResponse()?.code
         let selectedCurrencySymbol = getLocalSymbolFromLatestResponse()?.symbol
         cell.textLabel?.text = LocalizationConstants.localCurrency
-        
+        cell.detailTextLabel?.textColor = .brandPrimary
         if let selectedCode = selectedCurrencyCode {
             if self.allCurrencySymbolsDictionary[selectedCode] == nil {
                 updateAccountInfo()
@@ -110,7 +110,8 @@ extension SettingsTableViewController {
     
     func prepare2FACell(_ cell: UITableViewCell) {
         let authType = WalletManager.shared.wallet.getTwoStepType()
-        cell.detailTextLabel?.textColor = .green
+        cell.detailTextLabel?.textColor = .white
+        createBadge(cell, color: .green)
         if authType == AuthenticationTwoFactorType.sms.rawValue {
             cell.detailTextLabel?.text = "SMS".localized()
         } else if authType == AuthenticationTwoFactorType.google.rawValue {
@@ -119,8 +120,10 @@ extension SettingsTableViewController {
             cell.detailTextLabel?.text = LocalizationConstants.Authentication.yubiKey
         } else if authType == AuthenticationTwoFactorType.none.rawValue {
             cell.detailTextLabel?.text = LocalizationConstants.disabled
-            cell.detailTextLabel?.textColor = .error
+            cell.detailTextLabel?.textColor = .white
+            createBadge(cell, color: .unverified)
         } else {
+            createBadge(cell, color: .unverified)
             cell.detailTextLabel?.text = LocalizationConstants.unknown
         }
     }
@@ -128,10 +131,12 @@ extension SettingsTableViewController {
     func prepareRecoveryCell(_ cell: UITableViewCell) {
         if WalletManager.shared.wallet.isRecoveryPhraseVerified() {
             cell.detailTextLabel?.text = LocalizationConstants.verified
-            cell.detailTextLabel?.textColor = .green
+            cell.detailTextLabel?.textColor = .white
+            createBadge(cell, color: .green)
         } else {
             cell.detailTextLabel?.text = LocalizationConstants.unconfirmed
-            cell.detailTextLabel?.textColor = .error
+            cell.detailTextLabel?.textColor = .white
+            createBadge(cell, color: .unverified)
         }
     }
     
@@ -142,8 +147,40 @@ extension SettingsTableViewController {
         cell.accessoryView = switchForEmailNotifications
     }
 
+    func getUserVerificationStatus(handler: @escaping (KYCUserResponse?, Bool) -> Void) {
+        KYCNetworkRequest(get: .users(userID: "userID"), taskSuccess: { responseData in
+            do {
+                self.userIdentityStatus = try KYCUserResponse.decode(data: responseData)
+                guard let kycStatus = self.userIdentityStatus else {
+                    return
+                }
+                handler(kycStatus, true)
+            } catch {
+                // TODO: handle error
+                // TODO: Remove debug
+            }
+        }, taskFailure: { error in
+            // TODO: handle error
+            handler(nil, false)
+            Logger.shared.error(error.debugDescription)
+        })
+    }
+    
+    func prepareIdentityCell(_ cell: UITableViewCell) {
+        DispatchQueue.main.async {
+            self.getUserVerificationStatus { status, success in
+                if success {
+                    self.createBadge(cell, status)
+                    cell.detailTextLabel?.text =  status?.kycState
+                }
+            }
+        }
+    }
+    
     func prepareRow(_ cell: UITableViewCell, _ format: SettingsCell) {
         switch format {
+        case .identity:
+            prepareIdentityCell(cell)
         case .base:
             prepareBaseCell(cell)
         case .biometry:
@@ -173,6 +210,8 @@ extension SettingsTableViewController {
 
         prepareRow(cell, .base)
         switch (indexPath.section, indexPath.row) {
+        case (sectionProfile, identityVerification):
+            prepareRow(cell, .identity)
         case (sectionProfile, profileWalletIdentifier):
             prepareRow(cell, .wallet)
         case (sectionProfile, profileEmail):
@@ -195,23 +234,35 @@ extension SettingsTableViewController {
             break
         }
     }
+
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = UIView()
         headerView.backgroundColor = .clear
-
-        let headerLabel = UILabel(frame: CGRect(x: 18, y: 12, width:
-            tableView.bounds.size.width, height: 45))
-        headerLabel.font = UIFont(name: Constants.FontNames.montserratRegular, size: Constants.FontSizes.SmallMedium)
-        headerLabel.textColor = .brandPrimary
+        let headerLabel = UILabel(frame: CGRect(x: 18, y: 3, width:
+            tableView.bounds.size.width, height: 32))
+        headerLabel.font = UIFont(name: Constants.FontNames.montserratSemiBold, size: Constants.FontSizes.ExtraExtraExtraSmall)
+        headerLabel.textColor = .gray5
         headerLabel.text = self.tableView(self.tableView, titleForHeaderInSection: section)
+
+        if section == 0 {
+            headerView.frame = CGRect(x: 18, y: 43, width:
+                tableView.bounds.size.width, height: 65)
+            headerLabel.frame.origin.y += 16
+        }
+        
         headerLabel.sizeToFit()
         headerView.addSubview(headerLabel)
-
+        headerView.layoutIfNeeded()
         return headerView
     }
+
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 45
+         if section == 0 {
+                return 50
+        }
+        return 32
     }
+    
     override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
         if indexPath.section == sectionProfile && indexPath.row == profileWalletIdentifier {
             return indexPath
@@ -230,6 +281,9 @@ extension SettingsTableViewController {
         switch indexPath.section {
         case sectionProfile:
             switch indexPath.row {
+            case identityVerification:
+                AppCoordinator.sharedInstance().showKYCView()
+                return
             case profileWalletIdentifier:
                 walletIdentifierClicked()
                 return
@@ -291,5 +345,52 @@ extension SettingsTableViewController {
         default:
             break
         }
+    }
+}
+
+class EdgeInsetLabel: UILabel {
+    
+    var textInsets = UIEdgeInsets.zero {
+        didSet { invalidateIntrinsicContentSize() }
+    }
+
+    override func textRect(forBounds bounds: CGRect, limitedToNumberOfLines numberOfLines: Int) -> CGRect {
+        let insetRect = UIEdgeInsetsInsetRect(bounds, textInsets)
+        let textRect = super.textRect(forBounds: insetRect, limitedToNumberOfLines: numberOfLines)
+        let invertedInsets = UIEdgeInsets(top: -textInsets.top,
+                                          left: -textInsets.left,
+                                          bottom: -textInsets.bottom,
+                                          right: -textInsets.right)
+        return UIEdgeInsetsInsetRect(textRect, invertedInsets)
+    }
+    
+    override func drawText(in rect: CGRect) {
+        super.drawText(in: UIEdgeInsetsInsetRect(rect, textInsets))
+    }
+}
+
+extension EdgeInsetLabel {
+    @IBInspectable
+    var leftTextInset: CGFloat {
+        set { textInsets.left = newValue }
+        get { return textInsets.left }
+    }
+    
+    @IBInspectable
+    var rightTextInset: CGFloat {
+        set { textInsets.right = newValue }
+        get { return textInsets.right }
+    }
+    
+    @IBInspectable
+    var topTextInset: CGFloat {
+        set { textInsets.top = newValue }
+        get { return textInsets.top }
+    }
+    
+    @IBInspectable
+    var bottomTextInset: CGFloat {
+        set { textInsets.bottom = newValue }
+        get { return textInsets.bottom }
     }
 }

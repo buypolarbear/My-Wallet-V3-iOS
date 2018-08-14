@@ -31,7 +31,7 @@ extension UIColor {
     static let brandYellowLighter = #colorLiteral(red: 1, green: 0.9019607843, blue: 0.7058823529, alpha: 1)
 
     static let error = #colorLiteral(red: 0.7921568627, green: 0.2274509804, blue: 0.2352941176, alpha: 1)
-
+    
     static let gray1 = #colorLiteral(red: 0.9176470588, green: 0.9176470588, blue: 0.9176470588, alpha: 1)
 
     static let gray2 = #colorLiteral(red: 0.8, green: 0.8, blue: 0.8, alpha: 1)
@@ -63,4 +63,6 @@ extension UIColor {
     static let keyPadButton = #colorLiteral(red: 0.831372549, green: 0.8509803922, blue: 0.8666666667, alpha: 1)
 
     static let lightGray = #colorLiteral(red: 0.9607843137, green: 0.9647058824, blue: 0.9725490196, alpha: 1)
+    
+    static let unverified = #colorLiteral(red: 0.86, green: 0.16, blue: 0.16, alpha: 1.0)
 }

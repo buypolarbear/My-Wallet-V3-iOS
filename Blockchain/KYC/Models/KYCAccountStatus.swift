@@ -8,6 +8,25 @@
 
 import Foundation
 
+struct KYCUserAddress: Codable {
+    let city: String?
+    let line1: String?
+    let line2: String?
+    let state: String?
+    let country: String?
+    let postCode: String?
+}
+
+struct KYCUserResponse: Codable {
+    let firstName: String?
+    let lastName: String?
+    let email: String?
+    let mobile: String?
+    let mobileVerified: Bool
+    let address: KYCUserAddress?
+    let kycState: String
+}
+
 enum KYCAccountStatus: Int {
     case approved, failed, underReview, inProgress
 

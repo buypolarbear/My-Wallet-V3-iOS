@@ -129,12 +129,24 @@ extension AppSettingsController {
     /// MARK: -formatDetailCell
     func formatDetailCell(_ verified: Bool, _ cell: UITableViewCell) {
         if verified {
+            self.createBadge(cell, color: .green)
             cell.detailTextLabel?.text = LocalizationConstants.verified
             cell.detailTextLabel?.textColor = .green
         } else {
+            createBadge(cell, color: .unverified)
             cell.detailTextLabel?.text = LocalizationConstants.unverified
-            cell.detailTextLabel?.textColor = .error
+            cell.detailTextLabel?.textColor = .white
         }
+    }
+    
+    func createBadge(_ cell: UITableViewCell,  color: UIColor? = nil, _ using: KYCUserResponse? = nil) {
+        cell.detailTextLabel?.layer.cornerRadius = 4
+        cell.detailTextLabel?.layer.masksToBounds = true
+        cell.detailTextLabel?.backgroundColor = .unverified
+        cell.detailTextLabel?.textColor = .white
+        cell.detailTextLabel?.frame.origin.x += 25
+        cell.detailTextLabel?.font = UIFont(name: Constants.FontNames.montserratSemiBold, size: Constants.FontSizes.Tiny)
+        cell.detailTextLabel?.sizeToFit()
     }
     
     /// MARK: -isMobileVerified
@@ -150,7 +162,7 @@ extension AppSettingsController {
 
 extension CustomSettingCell {
     func styleCell() {
-        title?.textColor = .darkGray
+        title?.textColor = .brandPrimary
         title?.font = UIFont(name: Constants.FontNames.montserratLight, size: Constants.FontSizes.MediumLarge)
     }
 }
@@ -159,6 +171,7 @@ extension CustomDetailCell {
     func formatDetails() {
         subtitle?.font = UIFont(name: Constants.FontNames.montserratLight, size: Constants.FontSizes.Small)
     }
+    
     func mockCell() {
         // Only for Interface Builder
         subtitle?.text = LocalizationConstants.more

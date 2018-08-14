@@ -14,11 +14,16 @@ import CoreFoundation
 AppSettingsController, UITextFieldDelegate, EmailDelegate,
 MobileNumberDelegate, WalletAccountInfoDelegate {
     // Row References
+    
+    //Profile
     let sectionProfile = 0
-    let profileWalletIdentifier = 0
-    let profileEmail = 1
-    let profileMobileNumber = 2
-    let profileWebLogin = 3
+    let identityVerification = 0
+    let profileWalletIdentifier = 1
+    let profileEmail = 2
+    let profileMobileNumber = 3
+    let profileWebLogin = 4
+    
+    //Preferenes
     let sectionPreferences = 1
     let preferencesEmailNotifications = 0
     let preferencesLocalCurrency = 1
@@ -48,7 +53,8 @@ MobileNumberDelegate, WalletAccountInfoDelegate {
     weak var delegate: (UIViewController & EmailDelegate)!
     weak var numberDelegate: (UIViewController & MobileNumberDelegate)!
     let walletManager: WalletManager
-
+    var userIdentityStatus: KYCUserResponse?
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
     }

@@ -77,6 +77,10 @@ import UIKit
     }
 }
 
+
+
+
+
 @IBDesignable class SettingsTableViewCell: UITableViewCell, CustomSettingCell, CustomDetailCell {
     var subtitle: UILabel?
     var title: UILabel?

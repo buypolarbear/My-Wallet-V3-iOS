@@ -15,12 +15,11 @@ struct VerificationPayload: Codable {
 }
 
 /// Account verification screen in KYC flow
-final class KYCVerifyIdentityController: UIViewController {
+final class KYCVerifyIdentityController: KYCBaseViewController {
     
     enum VerificationProviders {
         case onfido
     }
-
 
     // MARK: - Properties
     
