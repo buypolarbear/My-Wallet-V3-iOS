@@ -2376,11 +2376,11 @@ MyWalletPhone.KYC = {
             objc_updateUserCredentials_success,
             objc_updateUserCredentials_error
         )
-    }
+    },
 
     userId: function() {
         return MyWallet.wallet.retailCore.userId;
-    }
+    },
 
     lifetimeToken: function() {
         return MyWallet.wallet.retailCore.lifetimeToken;
