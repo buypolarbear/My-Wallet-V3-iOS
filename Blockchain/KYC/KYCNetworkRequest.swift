@@ -50,11 +50,10 @@ final class KYCNetworkRequest {
                 case .credentials,
                      .credentialsForProvider,
                      .healthCheck,
+                     .listOfCountries,
                      .nextKYCMethod,
                      .users:
                     return nil
-                case .listOfCountries:
-                    return ["filter": "eea"]
                 }
             }
         }
@@ -144,7 +143,7 @@ final class KYCNetworkRequest {
             encoder.dateEncodingStrategy = .formatted(DateFormatter.birthday)
             let body = try encoder.encode(parameters)
             request.httpBody = body
-            request.allHTTPHeaderFields = ["Content-Type":"application/json",
+            request.allHTTPHeaderFields = ["Content-Type": "application/json",
                                            "Accept": "application/json"]
             send(taskSuccess: taskSuccess, taskFailure: taskFailure)
         } catch let error {
