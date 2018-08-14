@@ -204,8 +204,7 @@ extension KYCCountrySelectionController: UITableViewDataSource, UITableViewDeleg
 
 extension KYCCountrySelectionController: KYCCountrySelectionView {
     func continueKycFlow(country: KYCCountry) {
-        // TICKET: IOS-1142 - move to coordinator
-        performSegue(withIdentifier: "promptForPersonalDetails", sender: self)
+        coordinator.handle(event: .nextPageFromPageType(pageType))
     }
 
     func startPartnerExchangeFlow(country: KYCCountry) {
@@ -213,6 +212,6 @@ extension KYCCountrySelectionController: KYCCountrySelectionView {
     }
 
     func showExchangeNotAvailable(country: KYCCountry) {
-        // TICKET: IOS-1150
+        coordinator.handle(event: .failurePageForPageType(pageType, .countryNotSupported(country)))
     }
 }
