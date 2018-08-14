@@ -37,6 +37,9 @@ MobileNumberDelegate, WalletAccountInfoDelegate {
     let aboutTermsOfService = 1
     let aboutPrivacyPolicy = 2
     let aboutCookiePolicy = 3
+    let pinBiometry = 4
+    let pinSwipeToReceive = 5
+    
     var settingsController: SettingsTableViewController?
     var availableCurrenciesDictionary: [AnyHashable: Any] = [:]
     var allCurrencySymbolsDictionary: [AnyHashable: Any] = [:]
@@ -54,6 +57,10 @@ MobileNumberDelegate, WalletAccountInfoDelegate {
     weak var numberDelegate: (UIViewController & MobileNumberDelegate)!
     let walletManager: WalletManager
     var userIdentityStatus: KYCUserResponse?
+    
+    @IBOutlet var touchIDAsPin: SettingsToggleTableViewCell!
+    @IBOutlet var swipeToReceive: SettingsToggleTableViewCell!
+    
     
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -81,28 +88,6 @@ MobileNumberDelegate, WalletAccountInfoDelegate {
 
     func changeTwoStepTapped() {
         alertUserToChangeTwoStepVerification()
-    }
-
-    func pinBiometry() -> Int {
-        //: Don't show the option to enable biometric authentication if the user is not enrolled
-        if !(biometryTypeDescription() != nil) {
-            return -1
-        }
-        //: As long as the user is enrolled in biometric authentication, the row index will be 4
-        return 4
-    }
-
-    func pinSwipeToReceive() -> Int {
-        let swipeToReceive: AppFeatureConfiguration? = AppFeatureConfigurator.sharedInstance().configuration(for: .swipeToReceive)
-        if swipeToReceive?.isEnabled == nil {
-            return -1
-        }
-        //: If the user is enrolled in biometric authentication, account for the additional row
-        if biometryTypeDescription() != nil {
-            return 5
-        }
-        //: Otherwise it will be the forth item
-        return 4
     }
 
     func isMobileVerified() -> Bool {
@@ -704,6 +689,15 @@ MobileNumberDelegate, WalletAccountInfoDelegate {
         let loadedSettings: Bool = (UserDefaults.standard.object(forKey: "loadedSettings") != nil)
         if !loadedSettings {
             reload()
+        }
+        
+        if !(biometryTypeDescription() != nil) {
+            touchIDAsPin.isHidden = true
+        }
+        
+        let swipeToReceiveCall: AppFeatureConfiguration? = AppFeatureConfigurator.sharedInstance().configuration(for: .swipeToReceive)
+        if swipeToReceiveCall?.isEnabled == nil {
+            swipeToReceive?.isHidden = true
         }
     }
     @objc func reload() {

@@ -17,31 +17,7 @@ extension SettingsTableViewController {
     func reloadTableView() {
         tableView.reloadData()
     }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case sectionProfile:
-            return 5
-        case sectionPreferences:
-            return 2
-        case sectionSecurity:
-            var numberOfRows: Int = 6
-            if pinBiometry() == -1 {
-                numberOfRows -= 1
-            }
-            if pinSwipeToReceive() == -1 {
-                numberOfRows -= 1
-            }
-            if !WalletManager.shared.wallet.didUpgradeToHd() {
-                numberOfRows -= 1
-            }
-            return numberOfRows
-        case aboutSection:
-            return 4
-        default:
-            return 0
-        }
-    }
-    
+
     func prepareBaseCell(_ cell: UITableViewCell) {
         cell.textLabel?.font = UIFont(name: Constants.FontNames.montserratLight, size: Constants.FontSizes.Medium)
         cell.detailTextLabel?.font = UIFont(name: Constants.FontNames.montserratLight, size: Constants.FontSizes.Small)
@@ -105,7 +81,6 @@ extension SettingsTableViewController {
         switchForSwipeToReceive.isOn = swipeToReceiveEnabled
         switchForSwipeToReceive.addTarget(self, action: #selector(self.switchSwipeToReceiveTapped), for: .touchUpInside)
         cell.accessoryView = switchForSwipeToReceive
-        cell.textLabel?.text = LocalizationConstants.swipeReceive
     }
     
     func prepare2FACell(_ cell: UITableViewCell) {
@@ -170,7 +145,7 @@ extension SettingsTableViewController {
         DispatchQueue.main.async {
             self.getUserVerificationStatus { status, success in
                 if success {
-                    if var hasDetail = status?.kycState {
+                    if let hasDetail = status?.kycState {
                         self.createBadge(cell, status)
                         var asLowercased = hasDetail.lowercased()
                         let formattedString = asLowercased.capitalizingFirstLetter()
@@ -232,9 +207,9 @@ extension SettingsTableViewController {
             prepareRow(cell, .twoFA)
         case (sectionSecurity, securityWalletRecoveryPhrase):
             prepareRow(cell, .recovery)
-        case (sectionSecurity, pinBiometry()):
+        case (sectionSecurity, pinBiometry):
             prepareRow(cell, .biometry)
-        case (sectionSecurity, pinSwipeToReceive()):
+        case (sectionSecurity, pinSwipeToReceive):
             prepareRow(cell, .swipeReceive)
         default:
             break
