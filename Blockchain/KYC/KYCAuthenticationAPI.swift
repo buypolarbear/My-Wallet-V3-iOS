@@ -22,13 +22,14 @@ final class KYCAuthenticationAPI {
         success: @escaping (String, String) -> Void,
         error: @escaping (HTTPRequestError) -> Void
     ) {
-        let requestSuccess: (Data) -> Void = { data in
+        let taskSuccess: (Data) -> Void = { data in
+            // get the userId and lifetime token from the data
             success("userId", "lifetimeToken")
         }
         KYCNetworkRequest.init(
             post: KYCNetworkRequest.KYCEndpoints.POST.registerUser,
             parameters: [Keys.email: email, Keys.guid: guid],
-            taskSuccess: requestSuccess,
+            taskSuccess: taskSuccess,
             taskFailure: error
         )
     }
