@@ -93,13 +93,13 @@ final class KYCNetworkRequest: NSObject {
 
         let sessionConfiguration = URLSessionConfiguration.default
         if let userAgent = NetworkManager.userAgent {
-            sessionConfiguration.httpAdditionalHeaders = ["User-Agent": userAgent]
+            sessionConfiguration.httpAdditionalHeaders = [HttpHeaderField.userAgent: userAgent]
         }
         session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: nil)
 
         self.request = URLRequest(url: url)
         request.httpMethod = httpMethod
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue(HttpHeaderValue.json, forHTTPHeaderField: HttpHeaderField.accept)
         request.timeoutInterval = timeoutInterval
     }
 
@@ -134,8 +134,8 @@ final class KYCNetworkRequest: NSObject {
         })
         let data = postBody.data(using: .utf8)
         request.httpBody = data
-        request.addValue(String(describing: data?.count), forHTTPHeaderField: "Content-Length")
-        request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.addValue(String(describing: data?.count), forHTTPHeaderField: HttpHeaderField.contentLength)
+        request.addValue(HttpHeaderValue.formEncoded, forHTTPHeaderField: HttpHeaderField.contentType)
         send(taskSuccess: taskSuccess, taskFailure: taskFailure)
     }
 
@@ -152,8 +152,8 @@ final class KYCNetworkRequest: NSObject {
             encoder.dateEncodingStrategy = .formatted(DateFormatter.birthday)
             let body = try encoder.encode(parameters)
             request.httpBody = body
-            request.allHTTPHeaderFields = ["Content-Type": "application/json",
-                                           "Accept": "application/json"]
+            request.allHTTPHeaderFields = [HttpHeaderField.contentType: HttpHeaderValue.json,
+                                           HttpHeaderField.accept: HttpHeaderValue.json]
             send(taskSuccess: taskSuccess, taskFailure: taskFailure)
         } catch let error {
             taskFailure(HTTPRequestClientError.failedRequest(description: error.localizedDescription))
@@ -176,7 +176,7 @@ final class KYCNetworkRequest: NSObject {
                     taskFailure(HTTPRequestServerError.badStatusCode(code: httpResponse.statusCode)); return
                 }
                 if let mimeType = httpResponse.mimeType {
-                    guard mimeType == "application/json" else {
+                    guard mimeType == HttpHeaderValue.json else {
                         taskFailure(HTTPRequestPayloadError.invalidMimeType(type: mimeType)); return
                     }
                 }
