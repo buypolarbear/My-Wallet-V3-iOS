@@ -43,12 +43,11 @@ protocol KYCCoordinatorDelegate: class {
     weak var delegate: KYCCoordinatorDelegate?
 
     func start() {
-        authenticate()
-//        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
-//            Logger.shared.warning("Cannot start KYC. rootViewController is nil.")
-//            return
-//        }
-//        start(from: rootViewController)
+        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
+            Logger.shared.warning("Cannot start KYC. rootViewController is nil.")
+            return
+        }
+        start(from: rootViewController)
     }
 
     @objc func start(from viewController: UIViewController) {
