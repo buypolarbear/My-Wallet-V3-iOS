@@ -9,14 +9,15 @@
 import Foundation
 
 /// Handles network requests for the KYC flow
-final class KYCNetworkRequest {
+final class KYCNetworkRequest: NSObject {
     
     typealias TaskSuccess = (Data) -> Void
     typealias TaskFailure = (HTTPRequestError) -> Void
 
     fileprivate static let rootUrl = BlockchainAPI.shared.apiUrl
     private let timeoutInterval = TimeInterval(exactly: 30)!
-    private var request: URLRequest
+    private var request: URLRequest!
+    private var session: URLSession!
 
     // swiftlint:disable nesting
     struct KYCEndpoints {
@@ -88,6 +89,14 @@ final class KYCNetworkRequest {
     // MARK: - Initialization
 
     private init(url: URL, httpMethod: String) {
+        super.init()
+
+        let sessionConfiguration = URLSessionConfiguration.default
+        if let userAgent = NetworkManager.userAgent {
+            sessionConfiguration.httpAdditionalHeaders = ["User-Agent": userAgent]
+        }
+        session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: nil)
+
         self.request = URLRequest(url: url)
         request.httpMethod = httpMethod
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -155,7 +164,7 @@ final class KYCNetworkRequest {
     // MARK: - Private Methods
 
     private func send(taskSuccess: @escaping TaskSuccess, taskFailure: @escaping TaskFailure) {
-        let task = URLSession.shared.dataTask(with: request, completionHandler: { data, response, error in
+        let task = session.dataTask(with: request, completionHandler: { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
                     taskFailure(HTTPRequestClientError.failedRequest(description: error.localizedDescription)); return
@@ -178,5 +187,13 @@ final class KYCNetworkRequest {
             }
         })
         task.resume()
+    }
+}
+
+extension KYCNetworkRequest: URLSessionDelegate {
+    func urlSession(_ session: URLSession,
+                    didReceive challenge: URLAuthenticationChallenge,
+                    completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        CertificatePinner.shared.didReceive(challenge, completion: completionHandler)
     }
 }
