@@ -30,7 +30,7 @@ final class KYCNetworkRequest {
         }
 
         enum POST: String {
-            case registerUser = "/users"
+            case registerUser = "/internal/users"
             case apiKey = "/internal/auth"
             case sessionToken = "/auth"
             case verifications = "/verifications"

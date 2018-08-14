@@ -76,17 +76,44 @@ import Foundation
     }
 
     func authenticate() {
-        let success: (Data) -> Void = { data in
-
+        let error: (Any) -> Void = { error in
+            Logger.shared.error("Could not authenticate user")
         }
 
-        let error: (HTTPRequestError) -> Void = { error in
-
+        let getSessionTokenSuccess: (Any) -> Void = { _ in
+            Logger.shared.info("Session token obtained")
         }
 
-        KYCAuthenticationAPI.getApiKey(email: WalletManager.shared.wallet.getEmail(),
-                                        guid: WalletManager.shared.wallet.guid,
-                                        success: success,
-                                        error: error)
+        let getApiKeySuccess: (Any) -> Void = { _ in
+            KYCAuthenticationAPI.getSessionToken(
+                userId: "userId",
+                success: getSessionTokenSuccess,
+                error: error
+            )
+        }
+
+        let updateMetadataSuccess: (String) -> Void = { userId in
+            KYCAuthenticationAPI.getApiKey(
+                userId: userId,
+                success: getApiKeySuccess,
+                error: error
+            )
+        }
+
+        let createUserSuccess: (Data) -> Void = { data in
+            WalletManager.shared.wallet.updateKYCUserCredential(
+                "response.userId",
+                lifetimeToken: "response.token",
+                success: updateMetadataSuccess,
+                error: error
+            )
+        }
+
+        KYCAuthenticationAPI.createUser(
+            email: WalletManager.shared.wallet.getEmail(),
+            guid: WalletManager.shared.wallet.guid,
+            success: createUserSuccess,
+            error: error
+        )
     }
 }

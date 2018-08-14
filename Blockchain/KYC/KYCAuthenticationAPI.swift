@@ -13,6 +13,7 @@ final class KYCAuthenticationAPI {
     private struct Keys {
         static let email = "email"
         static let guid = "guid"
+        static let userId = "userId"
     }
 
     static func createUser(
@@ -30,31 +31,28 @@ final class KYCAuthenticationAPI {
     }
 
     static func getApiKey(
-        email: String,
-        guid: String,
+        userId: String,
         success: @escaping (Data) -> Void,
         error: @escaping (HTTPRequestError) -> Void
     ) {
         KYCNetworkRequest.init(
             post: KYCNetworkRequest.KYCEndpoints.POST.apiKey,
-            parameters: [Keys.email: email, Keys.guid: guid],
+            parameters: [Keys.userId: userId],
             taskSuccess: success,
             taskFailure: error
         )
     }
 
     static func getSessionToken(
-        email: String,
-        guid: String,
+        userId: String,
         success: @escaping (Data) -> Void,
         error: @escaping (HTTPRequestError) -> Void
         ) {
         KYCNetworkRequest.init(
             post: KYCNetworkRequest.KYCEndpoints.POST.sessionToken,
-            parameters: [Keys.email: email, Keys.guid: guid],
+            parameters: [Keys.userId: userId],
             taskSuccess: success,
             taskFailure: error
         )
     }
 }
-
